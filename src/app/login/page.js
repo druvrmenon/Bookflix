@@ -52,7 +52,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card slide-up">
         <div className="auth-logo">
-          <span>📚 BookFlix</span>
+          <span>BookFlix</span>
         </div>
         <h1>Welcome Back</h1>
         <p className="auth-subtitle">Sign in to your account</p>

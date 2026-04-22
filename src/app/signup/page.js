@@ -45,7 +45,7 @@ export default function SignUpPage() {
     <div className="auth-page">
       <div className="auth-card slide-up">
         <div className="auth-logo">
-          <span>📚 BookFlix</span>
+          <span>BookFlix</span>
         </div>
         <h1>Create Account</h1>
         <p className="auth-subtitle">Join BookFlix and start reading</p>
