@@ -33,7 +33,13 @@ export default function BookCard({ book, basePath = '/customer/book' }) {
         <div className="book-card-title">{book.title}</div>
         <div className="book-card-author">by {book.author}</div>
         <div className="book-card-meta">
-          <span className="badge badge-genre">{book.genre}</span>
+          {Array.isArray(book.genre) ? (
+            book.genre.map(g => (
+              <span key={g} className="badge badge-genre" style={{ marginRight: '4px' }}>{g}</span>
+            ))
+          ) : (
+            <span className="badge badge-genre">{book.genre}</span>
+          )}
           <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{book.language}</span>
         </div>
         {!book.available && book.available_date && (

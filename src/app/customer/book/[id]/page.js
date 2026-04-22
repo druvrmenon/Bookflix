@@ -93,8 +93,14 @@ export default function BookDetailPage() {
           <div className="book-detail-author">by {book.author}</div>
 
           <div className="book-detail-meta">
-            <span className="badge badge-genre">{book.genre}</span>
-            <span className="badge badge-genre">{book.language}</span>
+            {Array.isArray(book.genre) ? (
+              book.genre.map(g => (
+                <span key={g} className="badge badge-genre">{g}</span>
+              ))
+            ) : (
+              <span className="badge badge-genre">{book.genre}</span>
+            )}
+            <span className="badge badge-genre" style={{ background: 'var(--text-muted)' }}>{book.language}</span>
           </div>
 
           <div className={`book-detail-availability ${book.available ? 'in-stock' : 'out-of-stock'}`}>

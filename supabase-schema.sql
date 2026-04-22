@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS public.books (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
   author TEXT NOT NULL,
-  genre TEXT NOT NULL,
+  genre TEXT[] NOT NULL DEFAULT '{}',
   language TEXT NOT NULL CHECK (language IN ('Malayalam', 'English')),
   cover_url TEXT,
   available BOOLEAN DEFAULT TRUE,

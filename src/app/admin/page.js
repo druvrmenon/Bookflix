@@ -136,7 +136,15 @@ export default function AdminDashboard() {
                   <tr key={book.id}>
                     <td style={{ fontWeight: 600 }}>{book.title}</td>
                     <td>{book.author}</td>
-                    <td><span className="badge badge-genre">{book.genre}</span></td>
+                    <td>
+                      {Array.isArray(book.genre) ? (
+                        book.genre.map(g => (
+                          <span key={g} className="badge badge-genre" style={{ marginRight: '4px', marginBottom: '4px', display: 'inline-block' }}>{g}</span>
+                        ))
+                      ) : (
+                        <span className="badge badge-genre">{book.genre}</span>
+                      )}
+                    </td>
                     <td>{book.language}</td>
                     <td>
                       <button
@@ -191,7 +199,15 @@ export default function AdminDashboard() {
                 </div>
                 <div className="admin-card-row">
                   <span className="admin-card-label">Genre</span>
-                  <span className="badge badge-genre">{book.genre}</span>
+                  <div style={{ textAlign: 'right' }}>
+                    {Array.isArray(book.genre) ? (
+                      book.genre.map(g => (
+                        <span key={g} className="badge badge-genre" style={{ marginLeft: '4px', marginBottom: '4px', display: 'inline-block' }}>{g}</span>
+                      ))
+                    ) : (
+                      <span className="badge badge-genre">{book.genre}</span>
+                    )}
+                  </div>
                 </div>
                 <div className="admin-card-row">
                   <span className="admin-card-label">Language</span>

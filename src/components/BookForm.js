@@ -12,8 +12,21 @@ export default function BookForm({ book = null }) {
 
   const [title, setTitle] = useState(book?.title || '')
   const [author, setAuthor] = useState(book?.author || '')
-  const [genre, setGenre] = useState(book?.genre || GENRES[0])
+  const initialGenres = Array.isArray(book?.genre) 
+    ? book.genre 
+    : (book?.genre ? [book.genre] : [GENRES[0]])
+  const [genre, setGenre] = useState(initialGenres)
   const [language, setLanguage] = useState(book?.language || LANGUAGES[0])
+
+  const toggleGenre = (g) => {
+    if (genre.includes(g)) {
+      if (genre.length > 1) {
+        setGenre(genre.filter(item => item !== g))
+      }
+    } else {
+      setGenre([...genre, g])
+    }
+  }
   const [coverFile, setCoverFile] = useState(null)
   const [coverPreview, setCoverPreview] = useState(book?.cover_url || null)
   const [loading, setLoading] = useState(false)
@@ -110,21 +123,23 @@ export default function BookForm({ book = null }) {
         />
       </div>
 
-      <div className="book-form-row">
-        <div className="form-group">
-          <label className="form-label" htmlFor="book-genre">Genre</label>
-          <select
-            id="book-genre"
-            className="form-select"
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-          >
-            {GENRES.map((g) => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
+      <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: '16px' }}>
+        <label className="form-label">Genres</label>
+        <div className="filter-bar" style={{ flexWrap: 'wrap', overflowX: 'visible', paddingBottom: '0' }}>
+          {GENRES.map((g) => (
+            <button
+              key={g}
+              type="button"
+              className={`filter-chip ${genre.includes(g) ? 'active' : ''}`}
+              onClick={() => toggleGenre(g)}
+            >
+              {g}
+            </button>
+          ))}
         </div>
+      </div>
 
+      <div className="book-form-row">
         <div className="form-group">
           <label className="form-label" htmlFor="book-language">Language</label>
           <select

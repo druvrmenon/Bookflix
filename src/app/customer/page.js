@@ -34,7 +34,7 @@ export default function CatalogPage() {
       const matchSearch = search === '' ||
         book.title.toLowerCase().includes(search.toLowerCase()) ||
         book.author.toLowerCase().includes(search.toLowerCase())
-      const matchGenre = genre === '' || book.genre === genre
+      const matchGenre = genre === '' || (Array.isArray(book.genre) ? book.genre.includes(genre) : book.genre === genre)
       const matchLang = language === '' || book.language === language
       return matchSearch && matchGenre && matchLang
     })
