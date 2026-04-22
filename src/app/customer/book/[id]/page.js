@@ -37,6 +37,7 @@ export default function BookDetailPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser()
 
+      // Mark as out of stock
       const { error } = await supabase
         .from('books')
         .update({ available: false })
@@ -45,7 +46,17 @@ export default function BookDetailPage() {
       if (error) throw error
 
       setBook({ ...book, available: false })
-      setMessage('Book rented successfully! 🎉')
+      setMessage('Redirecting to WhatsApp... 🎉')
+
+      // Open WhatsApp chat
+      const phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '' // e.g., '919876543210'
+      if (!phoneNumber) {
+        console.warn('NEXT_PUBLIC_WHATSAPP_NUMBER is not set in .env.local')
+      }
+      
+      const text = encodeURIComponent(`Hello! I would like to rent the book: *${book.title}* by ${book.author}.`)
+      window.open(`https://wa.me/${phoneNumber}?text=${text}`, '_blank')
+
     } catch (err) {
       setMessage(err.message || 'Failed to rent book')
     } finally {
