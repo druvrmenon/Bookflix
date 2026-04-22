@@ -35,17 +35,6 @@ export default function BookDetailPage() {
     setMessage('')
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-
-      // Mark as out of stock
-      const { error } = await supabase
-        .from('books')
-        .update({ available: false })
-        .eq('id', book.id)
-
-      if (error) throw error
-
-      setBook({ ...book, available: false })
       setMessage('Redirecting to WhatsApp... 🎉')
 
       // Open WhatsApp chat
