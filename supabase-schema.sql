@@ -77,10 +77,7 @@ DROP POLICY IF EXISTS "Admins can delete books" ON public.books;
 CREATE POLICY "Admins can delete books" ON public.books
   FOR DELETE USING (public.is_admin());
 
--- 7. Allow authenticated users to update book availability (for renting)
-DROP POLICY IF EXISTS "Authenticated users can rent books" ON public.books;
-CREATE POLICY "Authenticated users can rent books" ON public.books
-  FOR UPDATE USING (auth.uid() IS NOT NULL);
+
 
 -- ============================================
 -- IMPORTANT: After running this SQL:
