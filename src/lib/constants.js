@@ -1,13 +1,18 @@
+// Application constants
+// Shared across components for consistent genre and language options
+
+// Available book genres — used in admin BookForm and customer FilterBar
 export const GENRES = [
-  'Fiction',
-  'Non-Fiction',
-  'Romance',
-  'Thriller',
-  'Sci-Fi',
-  'Fantasy',
-  'Self-Help',
-  'Biography',
-  'Academic',
+  'Fiction',     // Novels, stories
+  'Non-Fiction', // Factual, informational
+  'Romance',     // Love stories
+  'Thriller',    // Suspense, mystery
+  'Sci-Fi',      // Science fiction
+  'Fantasy',     // Fantasy worlds
+  'Self-Help',   // Personal development
+  'Biography',   // Life stories
+  'Academic',    // Textbooks, educational
 ]
 
+// Available book languages — used in admin BookForm and customer FilterBar
 export const LANGUAGES = ['Malayalam', 'English']
