@@ -251,33 +251,36 @@ export default function BookDetailPage() {
             </div>
           )}
 
-          {/* Rent button */}
-          {book.available && (
-            <button onClick={handleRent} className="btn btn-primary" disabled={renting}
-              style={{ width: '100%', maxWidth: '300px' }}>
-              {renting && <span className="spinner"></span>}
-              Rent This Book
-            </button>
-          )}
-
-          {/* Share to IG Story button */}
-          <button onClick={handleShareStory} className="btn mt-3" disabled={sharing}
-            style={{ 
-              width: '100%', 
-              maxWidth: '300px', 
-              background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', 
-              color: 'white', 
-              border: 'none', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              gap: '8px' 
-            }}>
-            {sharing ? <span className="spinner"></span> : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+          {/* Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px', alignItems: 'center' }}>
+            {/* Rent button */}
+            {book.available && (
+              <button onClick={handleRent} className="btn btn-primary" disabled={renting}
+                style={{ width: '100%', maxWidth: '300px' }}>
+                {renting && <span className="spinner"></span>}
+                Rent This Book
+              </button>
             )}
-            Share to IG Story
-          </button>
+
+            {/* Share to IG Story button */}
+            <button onClick={handleShareStory} className="btn" disabled={sharing}
+              style={{ 
+                width: '100%', 
+                maxWidth: '300px', 
+                background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', 
+                color: 'white', 
+                border: 'none', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '8px' 
+              }}>
+              {sharing ? <span className="spinner"></span> : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              )}
+              Share to IG Story
+            </button>
+          </div>
         </div>
       </div>
     </div>
