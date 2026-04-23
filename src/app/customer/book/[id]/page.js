@@ -63,17 +63,6 @@ export default function BookDetailPage() {
       ctx.textAlign = 'center'
       ctx.fillText("Available to rent on BookFlix!", 540, 250)
 
-      // 3. Draw Book Title and Author (Bottom)
-      ctx.fillStyle = '#f9fafb' // var(--gray-50)
-      ctx.font = 'bold 80px sans-serif'
-      // Limit title length or it will overflow. Simple approach:
-      const safeTitle = book.title.length > 25 ? book.title.substring(0, 22) + '...' : book.title
-      ctx.fillText(safeTitle, 540, 1400)
-
-      ctx.fillStyle = '#a8a29e' // var(--text-muted)
-      ctx.font = '45px sans-serif'
-      ctx.fillText(`by ${book.author}`, 540, 1480)
-
       // Helper to load image securely for canvas
       const loadImg = (src) => new Promise((resolve, reject) => {
         const img = new Image()
@@ -83,13 +72,13 @@ export default function BookDetailPage() {
         img.src = src
       })
 
-      // 4. Draw Book Cover
+      // 3. Draw Book Cover (Draw BEFORE text so shadow doesn't overlap text)
       if (book.cover_url) {
         const coverImg = await loadImg(book.cover_url)
         const coverWidth = 700
         const coverHeight = 1050
         const coverX = (1080 - coverWidth) / 2
-        const coverY = 320
+        const coverY = 290 // Moved up slightly
         
         // Add drop shadow
         ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
@@ -102,6 +91,19 @@ export default function BookDetailPage() {
         // Reset shadow
         ctx.shadowColor = 'transparent'
       }
+
+      // 4. Draw Book Title and Author (Bottom)
+      ctx.fillStyle = '#f9fafb' // var(--gray-50)
+      ctx.font = 'bold 80px sans-serif'
+      // Limit title length or it will overflow. Simple approach:
+      const safeTitle = book.title.length > 25 ? book.title.substring(0, 22) + '...' : book.title
+      ctx.fillText(safeTitle, 540, 1450) // Moved down for breathing room
+
+      ctx.fillStyle = '#a8a29e' // var(--text-muted)
+      ctx.font = '45px sans-serif'
+      ctx.fillText(`by ${book.author}`, 540, 1530)
+
+
 
       // 5. Draw BookFlix Logo
       try {
