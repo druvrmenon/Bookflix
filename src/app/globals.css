@@ -597,6 +597,11 @@ h4 { font-size: 1.1rem; }
   position: absolute;
   top: 8px;
   right: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: var(--radius-full);
+  padding: 2px;
 }
 
 .book-card-body {
