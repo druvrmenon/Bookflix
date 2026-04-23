@@ -1,18 +1,17 @@
 // Admin layout — wraps all /admin/* pages
-// Provides navbar and double auth guard: must be logged in AND have admin role
-// Non-admins are redirected to customer dashboard
+// Provides navbar, footer, and double auth guard: must be logged in AND have admin role
 
 import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import Navbar from '@/components/Navbar' // Shared navigation bar
+import Footer from '@/components/Footer' // Site footer
 
 // SEO metadata for admin pages
 export const metadata = {
-  title: 'Admin Dashboard — BookFlix', // Browser tab title
-  description: 'Manage books, availability, and catalog.', // Search description
+  title: 'Admin Dashboard — BookFlix',
+  description: 'Manage books, availability, and catalog.',
 }
 
-// Layout component — renders navbar + children for all admin routes
 export default async function AdminLayout({ children }) {
   // Create server-side Supabase client
   const supabase = await createClient()
@@ -27,9 +26,9 @@ export default async function AdminLayout({ children }) {
   // Fetch user's role from profiles table
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role') // Only fetch role column
-    .eq('id', user.id) // Match by user ID
-    .single() // Expect one result
+    .select('role')
+    .eq('id', user.id)
+    .single()
 
   // If user is NOT an admin, redirect to customer dashboard
   if (profile?.role !== 'admin') {
@@ -37,15 +36,18 @@ export default async function AdminLayout({ children }) {
   }
 
   return (
-    <>
-      {/* Navbar with admin role (shows Dashboard + Add Book links) */}
+    // Flex column layout ensures footer sticks to bottom
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      {/* Navbar with admin role */}
       <Navbar role="admin" />
-      {/* Page content area */}
-      <main className="page">
+      {/* Page content */}
+      <main className="page" style={{ flex: 1 }}>
         <div className="container">
           {children}
         </div>
       </main>
-    </>
+      {/* Footer at bottom */}
+      <Footer />
+    </div>
   )
 }

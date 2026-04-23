@@ -1,18 +1,17 @@
 // Customer layout — wraps all /customer/* pages
-// Provides navbar and auth guard (redirects unauthenticated users to login)
-// This is a Server Component — auth check happens on the server
+// Provides navbar, footer, and auth guard (redirects unauthenticated users to login)
 
 import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import Navbar from '@/components/Navbar' // Shared navigation bar
+import Footer from '@/components/Footer' // Site footer
 
 // SEO metadata for customer pages
 export const metadata = {
-  title: 'Catalog — BookFlix', // Browser tab title
-  description: 'Browse and rent books from our curated catalog.', // Search engine description
+  title: 'Catalog — BookFlix',
+  description: 'Browse and rent books from our curated catalog.',
 }
 
-// Layout component — renders navbar + children for all customer routes
 export default async function CustomerLayout({ children }) {
   // Create server-side Supabase client
   const supabase = await createClient()
@@ -25,15 +24,18 @@ export default async function CustomerLayout({ children }) {
   }
 
   return (
-    <>
-      {/* Navbar with customer role (shows catalog link) */}
+    // Flex column layout ensures footer sticks to bottom
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      {/* Navbar with customer role */}
       <Navbar role="customer" />
-      {/* Page content area with container for max-width */}
-      <main className="page">
+      {/* Page content — grows to fill space */}
+      <main className="page" style={{ flex: 1 }}>
         <div className="container">
           {children}
         </div>
       </main>
-    </>
+      {/* Footer at bottom */}
+      <Footer />
+    </div>
   )
 }

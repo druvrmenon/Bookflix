@@ -78,6 +78,44 @@ CREATE POLICY "Admins can delete books" ON public.books
   FOR DELETE USING (public.is_admin());
 
 
+-- 7. New columns for books (back cover, description, new badge)
+ALTER TABLE public.books ADD COLUMN IF NOT EXISTS back_cover_url TEXT;
+ALTER TABLE public.books ADD COLUMN IF NOT EXISTS description TEXT;
+ALTER TABLE public.books ADD COLUMN IF NOT EXISTS show_new_badge BOOLEAN DEFAULT NULL;
+-- show_new_badge: NULL = auto (show if < 7 days old), true = force on, false = force off
+
+-- 8. Wishlists table (customer favorites)
+CREATE TABLE IF NOT EXISTS public.wishlists (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  book_id UUID REFERENCES public.books ON DELETE CASCADE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, book_id)
+);
+ALTER TABLE public.wishlists ENABLE ROW LEVEL SECURITY;
+
+-- Wishlist RLS policies
+DROP POLICY IF EXISTS "Users can view own wishlist" ON public.wishlists;
+CREATE POLICY "Users can view own wishlist" ON public.wishlists
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can add to wishlist" ON public.wishlists;
+CREATE POLICY "Users can add to wishlist" ON public.wishlists
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can remove from wishlist" ON public.wishlists;
+CREATE POLICY "Users can remove from wishlist" ON public.wishlists
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- 9. Allow users to update own profile (for profile page)
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+CREATE POLICY "Users can update own profile" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+-- 10. Allow admins to update any profile (for user management / promote/demote)
+DROP POLICY IF EXISTS "Admins can update profiles" ON public.profiles;
+CREATE POLICY "Admins can update profiles" ON public.profiles
+  FOR UPDATE USING (public.is_admin());
 
 -- ============================================
 -- IMPORTANT: After running this SQL:

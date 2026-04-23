@@ -1,72 +1,80 @@
 // BookCard component — displays a single book in the catalog grid
-// Shows cover image, title, author, genre badges, availability status
-'use client' // Client component for Link interactivity
+// Shows cover, title, author, genres, availability, "NEW" badge, and wishlist heart
+'use client'
 
-import Link from 'next/link' // Next.js optimized link with prefetching
+import Link from 'next/link'
 
-// BookCard accepts a `book` object and optional `basePath` for the detail link
-export default function BookCard({ book, basePath = '/customer/book' }) {
-  // Get cover image URL (null if no cover uploaded)
+// Helper: check if book should show "NEW" badge
+// show_new_badge: null = auto (< 7 days), true = force on, false = force off
+function shouldShowNewBadge(book) {
+  if (book.show_new_badge === true) return true
+  if (book.show_new_badge === false) return false
+  // Auto: show if created within last 7 days
+  const sevenDaysAgo = new Date()
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+  return new Date(book.created_at) > sevenDaysAgo
+}
+
+export default function BookCard({ book, basePath = '/customer/book', isWishlisted = false, onToggleWishlist = null }) {
   const coverUrl = book.cover_url || null
+  const showNew = shouldShowNewBadge(book)
 
   return (
-    // Entire card is a link to the book detail page
-    <Link href={`${basePath}/${book.id}`} className="card book-card">
-      {/* Cover image section with 2:3 aspect ratio */}
-      <div className="book-card-cover">
-        {coverUrl ? (
-          // Show book cover image with lazy loading for performance
-          <img src={coverUrl} alt={book.title} loading="lazy" />
-        ) : (
-          // Fallback placeholder when no cover is uploaded
-          <div style={{
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '2.5rem',
-            opacity: 0.3
-          }}>
-            📖
-          </div>
-        )}
-        {/* Availability badge — positioned over the cover image */}
-        <div className="book-card-status">
-          <span className={`badge ${book.available ? 'badge-available' : 'badge-unavailable'}`}>
-            {book.available ? 'Available' : 'Out of Stock'}
-          </span>
-        </div>
-      </div>
+    <div className="card book-card" style={{ position: 'relative' }}>
+      {/* Wishlist heart button — only shown if callback provided */}
+      {onToggleWishlist && (
+        <button
+          className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(book.id); }}
+          style={{ position: 'absolute', top: 8, left: 8, zIndex: 10 }}
+          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          {isWishlisted ? '❤️' : '🤍'}
+        </button>
+      )}
 
-      {/* Card body — book info below the cover */}
-      <div className="book-card-body">
-        {/* Book title — truncated to 2 lines via CSS */}
-        <div className="book-card-title">{book.title}</div>
-        {/* Author name */}
-        <div className="book-card-author">by {book.author}</div>
-        {/* Genre badges and language */}
-        <div className="book-card-meta">
-          {/* Handle both array and string genre formats */}
-          {Array.isArray(book.genre) ? (
-            // Map over genre array to show multiple badges
-            book.genre.map(g => (
-              <span key={g} className="badge badge-genre" style={{ marginRight: '4px' }}>{g}</span>
-            ))
+      {/* Clickable link wrapping the card content */}
+      <Link href={`${basePath}/${book.id}`} style={{ display: 'block' }}>
+        {/* Cover image */}
+        <div className="book-card-cover">
+          {coverUrl ? (
+            <img src={coverUrl} alt={book.title} loading="lazy" />
           ) : (
-            // Single genre fallback
-            <span className="badge badge-genre">{book.genre}</span>
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', opacity: 0.3 }}>
+              📖
+            </div>
           )}
-          {/* Language label */}
-          <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{book.language}</span>
-        </div>
-        {/* Show expected availability date for out-of-stock books */}
-        {!book.available && book.available_date && (
-          <div style={{ fontSize: '0.78rem', color: 'var(--yellow)', marginTop: '6px' }}>
-            Available from: {new Date(book.available_date).toLocaleDateString()}
+          {/* Status + NEW badges */}
+          <div className="book-card-status">
+            {showNew && <span className="badge-new">NEW</span>}
+            {' '}
+            <span className={`badge ${book.available ? 'badge-available' : 'badge-unavailable'}`}>
+              {book.available ? 'Available' : 'Out of Stock'}
+            </span>
           </div>
-        )}
-      </div>
-    </Link>
+        </div>
+
+        {/* Card body */}
+        <div className="book-card-body">
+          <div className="book-card-title">{book.title}</div>
+          <div className="book-card-author">by {book.author}</div>
+          <div className="book-card-meta">
+            {Array.isArray(book.genre) ? (
+              book.genre.map(g => (
+                <span key={g} className="badge badge-genre" style={{ marginRight: '4px' }}>{g}</span>
+              ))
+            ) : (
+              <span className="badge badge-genre">{book.genre}</span>
+            )}
+            <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>{book.language}</span>
+          </div>
+          {!book.available && book.available_date && (
+            <div style={{ fontSize: '0.78rem', color: 'var(--yellow)', marginTop: '6px' }}>
+              Available from: {new Date(book.available_date).toLocaleDateString()}
+            </div>
+          )}
+        </div>
+      </Link>
+    </div>
   )
 }
