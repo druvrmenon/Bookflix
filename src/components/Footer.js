@@ -11,9 +11,9 @@ export default function Footer() {
         </p>
         {/* Social links */}
         <div className="footer-links">
-          {/* Instagram link — update href with your actual profile URL */}
+          {/* Instagram link */}
           <a
-            href="https://instagram.com/"
+            href="https://instagram.com/bookflix.kochi"
             target="_blank"
             rel="noopener noreferrer"
             className="footer-social"
