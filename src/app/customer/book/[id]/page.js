@@ -67,20 +67,22 @@ export default function BookDetailPage() {
 
       <div className="book-detail">
         {/* Cover section */}
-        <div className="book-detail-cover">
-          {currentCover ? (
-            <img src={currentCover} alt={showBack ? 'Back cover' : book.title} />
-          ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-              </svg>
-            </div>
-          )}
+        <div>
+          <div className="book-detail-cover">
+            {currentCover ? (
+              <img src={currentCover} alt={showBack ? 'Back cover' : book.title} />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                </svg>
+              </div>
+            )}
+          </div>
           {/* Front/Back toggle — only show if back cover exists */}
           {book.back_cover_url && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '12px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px', justifyContent: 'center' }}>
               <button
                 className={`btn btn-sm ${!showBack ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => setShowBack(false)}
