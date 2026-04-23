@@ -15,6 +15,7 @@ export default function BookDetailPage() {
   const [renting, setRenting] = useState(false)
   const [message, setMessage] = useState('')
   const [showBack, setShowBack] = useState(false) // Toggle front/back cover
+  const [sharing, setSharing] = useState(false) // Loading state for IG Story sharing
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -39,6 +40,105 @@ export default function BookDetailPage() {
       setMessage(err.message || 'Failed to rent book')
     } finally {
       setRenting(false)
+    }
+  }
+
+  // Instagram Story Share handler
+  const handleShareStory = async () => {
+    setSharing(true)
+    setMessage('')
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = 1080
+      canvas.height = 1920
+      const ctx = canvas.getContext('2d')
+
+      // 1. Draw dark background
+      ctx.fillStyle = '#1a120c' // var(--brown-900)
+      ctx.fillRect(0, 0, 1080, 1920)
+
+      // 2. Draw Text (Top)
+      ctx.fillStyle = '#c9956c' // var(--rose-gold)
+      ctx.font = 'bold 50px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText("Available to rent on BookFlix!", 540, 250)
+
+      // 3. Draw Book Title and Author (Bottom)
+      ctx.fillStyle = '#f9fafb' // var(--gray-50)
+      ctx.font = 'bold 80px sans-serif'
+      // Limit title length or it will overflow. Simple approach:
+      const safeTitle = book.title.length > 25 ? book.title.substring(0, 22) + '...' : book.title
+      ctx.fillText(safeTitle, 540, 1400)
+
+      ctx.fillStyle = '#a8a29e' // var(--text-muted)
+      ctx.font = '45px sans-serif'
+      ctx.fillText(`by ${book.author}`, 540, 1480)
+
+      // Helper to load image securely for canvas
+      const loadImg = (src) => new Promise((resolve, reject) => {
+        const img = new Image()
+        img.crossOrigin = 'anonymous'
+        img.onload = () => resolve(img)
+        img.onerror = reject
+        img.src = src
+      })
+
+      // 4. Draw Book Cover
+      if (book.cover_url) {
+        const coverImg = await loadImg(book.cover_url)
+        const coverWidth = 700
+        const coverHeight = 1050
+        const coverX = (1080 - coverWidth) / 2
+        const coverY = 320
+        
+        // Add drop shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
+        ctx.shadowBlur = 50
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 20
+        
+        ctx.drawImage(coverImg, coverX, coverY, coverWidth, coverHeight)
+        
+        // Reset shadow
+        ctx.shadowColor = 'transparent'
+      }
+
+      // 5. Draw BookFlix Logo
+      try {
+        const logoImg = await loadImg(window.location.origin + '/logo.png')
+        const logoHeight = 160
+        const logoWidth = logoImg.width * (logoHeight / logoImg.height)
+        ctx.drawImage(logoImg, (1080 - logoWidth) / 2, 1620, logoWidth, logoHeight)
+      } catch (e) {
+        console.error("Failed to load logo", e)
+      }
+
+      // 6. Export and Share
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
+      const file = new File([blob], 'bookflix-story.png', { type: 'image/png' })
+
+      // Check if device supports native file sharing (Mobile)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: book.title,
+          text: `Reading ${book.title} on BookFlix!`,
+        })
+      } else {
+        // Fallback for Desktop: Download image
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `story-${book.title.replace(/\s+/g, '-').toLowerCase()}.png`
+        a.click()
+        URL.revokeObjectURL(url)
+        setMessage('Story graphic downloaded! You can now upload it to Instagram.')
+      }
+    } catch (err) {
+      console.error(err)
+      setMessage('Failed to generate story image.')
+    } finally {
+      setSharing(false)
     }
   }
 
@@ -157,6 +257,25 @@ export default function BookDetailPage() {
               Rent This Book
             </button>
           )}
+
+          {/* Share to IG Story button */}
+          <button onClick={handleShareStory} className="btn mt-3" disabled={sharing}
+            style={{ 
+              width: '100%', 
+              maxWidth: '300px', 
+              background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', 
+              color: 'white', 
+              border: 'none', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              gap: '8px' 
+            }}>
+            {sharing ? <span className="spinner"></span> : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            )}
+            Share to IG Story
+          </button>
         </div>
       </div>
     </div>
