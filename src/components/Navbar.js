@@ -45,8 +45,7 @@ export default function Navbar({ role }) {
       <div className="navbar-inner">
         {/* Logo */}
         <Link href={role === 'admin' ? '/admin' : '/customer'} className="navbar-logo">
-          <span className="navbar-logo-icon">B</span>
-          BookFlix
+          <img src="/logo.png" alt="BookFlix Logo" className="navbar-logo-img" />
         </Link>
 
         {/* Desktop links */}

@@ -33,7 +33,9 @@ export default function ForgotPasswordPage() {
   return (
     <div className="auth-page">
       <div className="auth-card slide-up">
-        <div className="auth-logo"><span>BookFlix</span></div>
+        <div className="auth-logo">
+          <img src="/logo.png" alt="BookFlix Logo" />
+        </div>
         <h1>Forgot Password</h1>
 
         {sent ? (

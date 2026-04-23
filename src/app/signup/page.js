@@ -55,7 +55,7 @@ export default function SignUpPage() {
       <div className="auth-card slide-up">
         {/* Logo */}
         <div className="auth-logo">
-          <span>BookFlix</span>
+          <img src="/logo.png" alt="BookFlix Logo" />
         </div>
         {/* Heading and subtitle */}
         <h1>Create Account</h1>

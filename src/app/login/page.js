@@ -61,7 +61,7 @@ export default function LoginPage() {
       <div className="auth-card slide-up">
         {/* Logo */}
         <div className="auth-logo">
-          <span>BookFlix</span>
+          <img src="/logo.png" alt="BookFlix Logo" />
         </div>
         {/* Heading and subtitle */}
         <h1>Welcome Back</h1>
