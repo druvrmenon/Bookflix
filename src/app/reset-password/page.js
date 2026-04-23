@@ -49,7 +49,9 @@ export default function ResetPasswordPage() {
 
         {success ? (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '3rem', marginBottom: '16px' }}>✅</div>
+            <div style={{ marginBottom: '16px', color: 'var(--green)' }}>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
             <p className="auth-subtitle">Password updated! Redirecting to login...</p>
           </div>
         ) : (

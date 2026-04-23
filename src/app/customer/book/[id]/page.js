@@ -31,7 +31,7 @@ export default function BookDetailPage() {
     setRenting(true)
     setMessage('')
     try {
-      setMessage('Redirecting to WhatsApp... 🎉')
+      setMessage('Redirecting to WhatsApp...')
       const phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ''
       const text = encodeURIComponent(`Hello! I would like to rent the book: *${book.title}* by ${book.author}.`)
       window.open(`https://wa.me/${phoneNumber}?text=${text}`, '_blank')
@@ -47,7 +47,9 @@ export default function BookDetailPage() {
   if (!book) {
     return (
       <div className="empty-state">
-        <div className="empty-state-icon">❌</div>
+        <div className="empty-state-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        </div>
         <div className="empty-state-text">Book not found</div>
         <Link href="/customer" className="btn btn-secondary mt-2">Back to Catalog</Link>
       </div>
@@ -69,8 +71,11 @@ export default function BookDetailPage() {
           {currentCover ? (
             <img src={currentCover} alt={showBack ? 'Back cover' : book.title} />
           ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '4rem', opacity: 0.3 }}>
-              📖
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
             </div>
           )}
           {/* Front/Back toggle — only show if back cover exists */}

@@ -33,7 +33,7 @@ export default async function Home() {
   return (
     <div className="hero">
       {/* Category badge */}
-      <div className="hero-badge">📚 Book Rental Platform</div>
+      <div className="hero-badge">Book Rental Platform</div>
       {/* Main heading with gradient text */}
       <h1>Your Next Great Read Awaits</h1>
       {/* Subtitle description */}

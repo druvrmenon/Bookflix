@@ -44,7 +44,9 @@ export default function EditBookPage() {
   if (!book) {
     return (
       <div className="empty-state">
-        <div className="empty-state-icon">❌</div>
+        <div className="empty-state-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        </div>
         <div className="empty-state-text">Book not found</div>
         <Link href="/admin" className="btn btn-secondary mt-2">Back to Dashboard</Link>
       </div>

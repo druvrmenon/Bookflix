@@ -239,7 +239,9 @@ export default function BookForm({ book = null }) {
                 <img src={coverPreview} alt="Front cover" className="file-upload-preview" />
               ) : (
                 <>
-                  <div className="file-upload-icon">📷</div>
+                  <div className="file-upload-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  </div>
                   <div className="file-upload-text">Front cover</div>
                 </>
               )}
@@ -256,7 +258,9 @@ export default function BookForm({ book = null }) {
                 <img src={backCoverPreview} alt="Back cover" className="file-upload-preview" />
               ) : (
                 <>
-                  <div className="file-upload-icon">📷</div>
+                  <div className="file-upload-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                  </div>
                   <div className="file-upload-text">Back cover</div>
                 </>
               )}
