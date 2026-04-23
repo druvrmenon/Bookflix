@@ -1273,6 +1273,12 @@ h4 { font-size: 1.1rem; }
 .footer-credit {
   font-size: 0.85rem;
   color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+
+.site-footer:hover .footer-credit {
+  opacity: 1;
 }
 
 .footer-heart {
