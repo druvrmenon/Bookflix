@@ -874,7 +874,9 @@ h4 { font-size: 1.1rem; }
 }
 
 .auth-logo {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   margin-bottom: 20px;
 }
 
