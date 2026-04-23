@@ -28,7 +28,6 @@ export default function Navbar({ role }) {
   // Customer navigation links
   const customerLinks = [
     { href: '/customer', label: 'Catalog' },
-    { href: '/customer/wishlist', label: 'Wishlist ❤️' },
     { href: '/customer/profile', label: 'Profile' },
   ]
 

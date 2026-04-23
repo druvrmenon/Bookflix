@@ -15,10 +15,9 @@ export default function CatalogPage() {
   const [genre, setGenre] = useState('')
   const [language, setLanguage] = useState('')
   const [sortBy, setSortBy] = useState('newest') // Sort option
-  const [wishlist, setWishlist] = useState([]) // Array of wishlisted book IDs
   const supabase = createClient()
 
-  // Fetch books and wishlist on mount
+  // Fetch books on mount
   useEffect(() => {
     const fetchData = async () => {
       // Fetch all books
@@ -28,41 +27,10 @@ export default function CatalogPage() {
         .order('created_at', { ascending: false })
 
       if (booksData) setBooks(booksData)
-
-      // Fetch user's wishlist
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: wishlistData } = await supabase
-          .from('wishlists')
-          .select('book_id')
-          .eq('user_id', user.id)
-
-        if (wishlistData) {
-          setWishlist(wishlistData.map(w => w.book_id))
-        }
-      }
-
       setLoading(false)
     }
     fetchData()
   }, [])
-
-  // Toggle wishlist — add or remove
-  const toggleWishlist = async (bookId) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    if (wishlist.includes(bookId)) {
-      // Remove from wishlist
-      await supabase.from('wishlists').delete()
-        .eq('user_id', user.id).eq('book_id', bookId)
-      setWishlist(wishlist.filter(id => id !== bookId))
-    } else {
-      // Add to wishlist
-      await supabase.from('wishlists').insert([{ user_id: user.id, book_id: bookId }])
-      setWishlist([...wishlist, bookId])
-    }
-  }
 
   // Filter and sort books — recalculates when any filter/sort changes
   const filtered = useMemo(() => {
@@ -148,8 +116,6 @@ export default function CatalogPage() {
             <BookCard
               key={book.id}
               book={book}
-              isWishlisted={wishlist.includes(book.id)}
-              onToggleWishlist={toggleWishlist}
             />
           ))}
         </div>

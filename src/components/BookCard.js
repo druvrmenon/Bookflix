@@ -15,28 +15,12 @@ function shouldShowNewBadge(book) {
   return new Date(book.created_at) > sevenDaysAgo
 }
 
-export default function BookCard({ book, basePath = '/customer/book', isWishlisted = false, onToggleWishlist = null }) {
+export default function BookCard({ book, basePath = '/customer/book' }) {
   const coverUrl = book.cover_url || null
   const showNew = shouldShowNewBadge(book)
 
   return (
     <div className="card book-card" style={{ position: 'relative' }}>
-      {/* Wishlist heart button — only shown if callback provided */}
-      {onToggleWishlist && (
-        <button
-          className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist(book.id); }}
-          style={{ position: 'absolute', top: 8, left: 8, zIndex: 10 }}
-          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          {isWishlisted ? '❤️' : (
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}>
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-          )}
-        </button>
-      )}
-
       {/* Clickable link wrapping the card content */}
       <Link href={`${basePath}/${book.id}`} style={{ display: 'block' }}>
         {/* Cover image */}
