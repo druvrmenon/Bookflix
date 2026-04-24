@@ -95,8 +95,8 @@ export default function CustomerSuggestionsPage() {
   }
 
   return (
-    <div className="admin-container" style={{ padding: '2rem 0', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 className="admin-page-title">Suggest a Book</h1>
+    <div className="fade-in" style={{ padding: '2rem 0', maxWidth: '800px', margin: '0 auto' }}>
+      <h1 className="page-title">Suggest a Book</h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
         Can't find what you're looking for? Let us know what books we should add to our catalog!
       </p>

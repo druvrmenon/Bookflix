@@ -72,9 +72,12 @@ export default function AdminSuggestionsPage() {
   }
 
   return (
-    <div className="admin-container">
-      <div className="admin-header">
-        <h1 className="admin-page-title">Manage Book Suggestions</h1>
+    <div className="fade-in">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+        <div>
+          <h1 className="page-title">Manage Book Suggestions</h1>
+          <p className="page-subtitle">Review and manage book requests from customers.</p>
+        </div>
       </div>
 
       {error && (
