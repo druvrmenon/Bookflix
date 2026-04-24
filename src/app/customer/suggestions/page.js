@@ -8,7 +8,7 @@ export default function CustomerSuggestionsPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
-  
+
   // Form state
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
@@ -74,7 +74,7 @@ export default function CustomerSuggestionsPage() {
       setGenre('')
       setAdditionalInfo('')
       await fetchSuggestions()
-      
+
     } catch (err) {
       console.error('Error submitting suggestion:', err)
       setError('Failed to submit suggestion.')
@@ -153,7 +153,7 @@ export default function CustomerSuggestionsPage() {
               className="form-input"
               value={additionalInfo}
               onChange={(e) => setAdditionalInfo(e.target.value)}
-              placeholder="Why should we add this book? ISBN, Edition, etc."
+              placeholder="Why should we add this book? Specific edition, series, etc."
               rows={4}
               style={{ resize: 'vertical' }}
             />
@@ -166,7 +166,7 @@ export default function CustomerSuggestionsPage() {
       </div>
 
       <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>Your Past Suggestions</h2>
-      
+
       {loading ? (
         <p style={{ color: 'var(--text-secondary)' }}>Loading your suggestions...</p>
       ) : suggestions.length === 0 ? (
