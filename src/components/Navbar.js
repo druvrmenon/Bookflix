@@ -29,6 +29,7 @@ export default function Navbar({ role }) {
   const customerLinks = [
     { href: '/customer', label: 'Catalog' },
     { href: '/customer/profile', label: 'Profile' },
+    { href: '/customer/suggestions', label: 'Suggest' },
   ]
 
   // Admin navigation links
@@ -36,6 +37,7 @@ export default function Navbar({ role }) {
     { href: '/admin', label: 'Dashboard' },
     { href: '/admin/book/new', label: 'Add Book' },
     { href: '/admin/users', label: 'Users' },
+    { href: '/admin/suggestions', label: 'Suggestions' },
   ]
 
   const links = role === 'admin' ? adminLinks : customerLinks

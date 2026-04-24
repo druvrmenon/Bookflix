@@ -117,6 +117,34 @@ DROP POLICY IF EXISTS "Admins can update profiles" ON public.profiles;
 CREATE POLICY "Admins can update profiles" ON public.profiles
   FOR UPDATE USING (public.is_admin());
 
+-- 11. Book Suggestions
+CREATE TABLE IF NOT EXISTS public.book_suggestions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  title TEXT NOT NULL,
+  author TEXT,
+  additional_info TEXT,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.book_suggestions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own suggestions" ON public.book_suggestions;
+CREATE POLICY "Users can view own suggestions" ON public.book_suggestions
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can view all suggestions" ON public.book_suggestions;
+CREATE POLICY "Admins can view all suggestions" ON public.book_suggestions
+  FOR SELECT USING (public.is_admin());
+
+DROP POLICY IF EXISTS "Users can create suggestions" ON public.book_suggestions;
+CREATE POLICY "Users can create suggestions" ON public.book_suggestions
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can update suggestions" ON public.book_suggestions;
+CREATE POLICY "Admins can update suggestions" ON public.book_suggestions
+  FOR UPDATE USING (public.is_admin());
+
 -- ============================================
 -- IMPORTANT: After running this SQL:
 -- 1. Go to Supabase Dashboard → Storage → Create bucket "book-covers" (set as PUBLIC)
