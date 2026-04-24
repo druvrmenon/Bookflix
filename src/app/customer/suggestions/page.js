@@ -12,6 +12,7 @@ export default function CustomerSuggestionsPage() {
   // Form state
   const [title, setTitle] = useState('')
   const [author, setAuthor] = useState('')
+  const [genre, setGenre] = useState('')
   const [additionalInfo, setAdditionalInfo] = useState('')
 
   const supabase = createClient()
@@ -61,6 +62,7 @@ export default function CustomerSuggestionsPage() {
           user_id: user.id,
           title: title.trim(),
           author: author.trim() || null,
+          genre: genre.trim() || null,
           additional_info: additionalInfo.trim() || null
         })
 
@@ -69,6 +71,7 @@ export default function CustomerSuggestionsPage() {
       // Clear form and refresh list
       setTitle('')
       setAuthor('')
+      setGenre('')
       setAdditionalInfo('')
       await fetchSuggestions()
       
@@ -132,6 +135,18 @@ export default function CustomerSuggestionsPage() {
           </div>
 
           <div className="form-group">
+            <label htmlFor="genre" className="form-label">Genre (Optional)</label>
+            <input
+              id="genre"
+              type="text"
+              className="form-input"
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+              placeholder="E.g., Science Fiction, Fantasy"
+            />
+          </div>
+
+          <div className="form-group">
             <label htmlFor="info" className="form-label">Additional Info (Optional)</label>
             <textarea
               id="info"
@@ -164,7 +179,8 @@ export default function CustomerSuggestionsPage() {
             <div key={suggestion.id} style={{ padding: '1.5rem', backgroundColor: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem', color: 'var(--text-primary)' }}>{suggestion.title}</h3>
-                {suggestion.author && <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>by {suggestion.author}</p>}
+                {suggestion.author && <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>by {suggestion.author}</p>}
+                {suggestion.genre && <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Genre: {suggestion.genre}</p>}
                 {suggestion.additional_info && <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>Note: {suggestion.additional_info}</p>}
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', marginTop: '0.5rem' }}>
                   Suggested on {new Date(suggestion.created_at).toLocaleDateString()}

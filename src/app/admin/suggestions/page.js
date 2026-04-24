@@ -98,6 +98,7 @@ export default function AdminSuggestionsPage() {
               <tr>
                 <th>Title</th>
                 <th>Author</th>
+                <th>Genre</th>
                 <th>Requested By</th>
                 <th>Date</th>
                 <th>Status</th>
@@ -116,6 +117,7 @@ export default function AdminSuggestionsPage() {
                     )}
                   </td>
                   <td>{suggestion.author || '-'}</td>
+                  <td>{suggestion.genre || '-'}</td>
                   <td>{suggestion.profiles?.full_name || 'Unknown User'}</td>
                   <td>{new Date(suggestion.created_at).toLocaleDateString()}</td>
                   <td>{getStatusBadge(suggestion.status)}</td>

@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS public.book_suggestions (
   user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
   title TEXT NOT NULL,
   author TEXT,
+  genre TEXT,
   additional_info TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
   created_at TIMESTAMPTZ DEFAULT NOW()
