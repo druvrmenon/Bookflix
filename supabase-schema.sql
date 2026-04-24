@@ -120,7 +120,7 @@ CREATE POLICY "Admins can update profiles" ON public.profiles
 -- 11. Book Suggestions
 CREATE TABLE IF NOT EXISTS public.book_suggestions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   title TEXT NOT NULL,
   author TEXT,
   genre TEXT,

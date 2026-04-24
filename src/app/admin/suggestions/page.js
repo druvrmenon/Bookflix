@@ -25,7 +25,7 @@ export default function AdminSuggestionsPage() {
         .from('book_suggestions')
         .select(`
           *,
-          profiles:user_id (full_name)
+          profiles (full_name)
         `)
         .order('created_at', { ascending: false })
 
