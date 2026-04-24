@@ -1,9 +1,9 @@
 -- ============================================
--- BookFlix — Database Setup
--- Run this in Supabase SQL Editor
+-- BookFlix initial schema
+-- just run this whole thing in supabase
 -- ============================================
 
--- 1. Profiles table (auto-created on sign-up via trigger)
+-- Profiles table
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   full_name TEXT,
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 );
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
--- 2. Books table
+-- Books table
 CREATE TABLE IF NOT EXISTS public.books (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.books (
 );
 ALTER TABLE public.books ENABLE ROW LEVEL SECURITY;
 
--- 3. Trigger: auto-create profile on user sign-up
+-- Trigger to auto create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -41,7 +41,7 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- 4. Admin checking function (SECURITY DEFINER to avoid infinite recursion)
+-- Admin check func
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -51,7 +51,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 5. RLS Policies — Profiles
+-- RLS for profiles
 DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
 CREATE POLICY "Users can view own profile" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
@@ -60,7 +60,7 @@ DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
 CREATE POLICY "Admins can view all profiles" ON public.profiles
   FOR SELECT USING (public.is_admin());
 
--- 6. RLS Policies — Books
+-- RLS for books
 DROP POLICY IF EXISTS "Anyone can view books" ON public.books;
 CREATE POLICY "Anyone can view books" ON public.books
   FOR SELECT USING (true);
@@ -78,13 +78,13 @@ CREATE POLICY "Admins can delete books" ON public.books
   FOR DELETE USING (public.is_admin());
 
 
--- 7. New columns for books (back cover, description, new badge)
+-- Extra book shit
 ALTER TABLE public.books ADD COLUMN IF NOT EXISTS back_cover_url TEXT;
 ALTER TABLE public.books ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE public.books ADD COLUMN IF NOT EXISTS show_new_badge BOOLEAN DEFAULT NULL;
--- show_new_badge: NULL = auto (show if < 7 days old), true = force on, false = force off
+-- show_new_badge: NULL = auto, true = force on, false = force off
 
--- 8. Wishlists table (customer favorites)
+-- Fucking wishlists
 CREATE TABLE IF NOT EXISTS public.wishlists (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users ON DELETE CASCADE NOT NULL,
@@ -107,17 +107,17 @@ DROP POLICY IF EXISTS "Users can remove from wishlist" ON public.wishlists;
 CREATE POLICY "Users can remove from wishlist" ON public.wishlists
   FOR DELETE USING (auth.uid() = user_id);
 
--- 9. Allow users to update own profile (for profile page)
+-- Let users update their own profile
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
--- 10. Allow admins to update any profile (for user management / promote/demote)
+-- Admins can update any profile
 DROP POLICY IF EXISTS "Admins can update profiles" ON public.profiles;
 CREATE POLICY "Admins can update profiles" ON public.profiles
   FOR UPDATE USING (public.is_admin());
 
--- 11. Book Suggestions
+-- Book suggestions
 CREATE TABLE IF NOT EXISTS public.book_suggestions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
@@ -147,7 +147,7 @@ CREATE POLICY "Admins can update suggestions" ON public.book_suggestions
   FOR UPDATE USING (public.is_admin());
 
 -- ============================================
--- IMPORTANT: After running this SQL:
--- 1. Go to Supabase Dashboard → Storage → Create bucket "book-covers" (set as PUBLIC)
--- 2. To make a user admin: UPDATE profiles SET role = 'admin' WHERE id = '<user-uuid>';
+-- NOTE: 
+-- create the "book-covers" bucket and make it public
+-- manually set someone to admin in the db first
 -- ============================================

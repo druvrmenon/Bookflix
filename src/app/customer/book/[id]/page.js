@@ -1,4 +1,3 @@
-// Book detail page — full book info with front/back cover, description, and WhatsApp rent
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -14,20 +13,19 @@ export default function BookDetailPage() {
   const [loading, setLoading] = useState(true)
   const [renting, setRenting] = useState(false)
   const [message, setMessage] = useState('')
-  const [showBack, setShowBack] = useState(false) // Toggle front/back cover
-  const [sharing, setSharing] = useState(false) // Loading state for IG Story sharing
+  const [showBack, setShowBack] = useState(false)
+  const [sharingThisShit, setSharingThisShit] = useState(false)
 
   useEffect(() => {
     const fetchBook = async () => {
-      const { data, error } = await supabase
+      const { data: fuckingData, error: shitError } = await supabase
         .from('books').select('*').eq('id', id).single()
-      if (!error && data) setBook(data)
+      if (!shitError && fuckingData) setBook(fuckingData)
       setLoading(false)
     }
     fetchBook()
   }, [id])
 
-  // WhatsApp rent handler
   const handleRent = async () => {
     setRenting(true)
     setMessage('')
@@ -36,16 +34,15 @@ export default function BookDetailPage() {
       const phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ''
       const text = encodeURIComponent(`Hello! I would like to rent the book: *${book.title}* by ${book.author}.`)
       window.open(`https://wa.me/${phoneNumber}?text=${text}`, '_blank')
-    } catch (err) {
-      setMessage(err.message || 'Failed to rent book')
+    } catch (damnError) {
+      setMessage(damnError.message || 'Failed to rent book')
     } finally {
       setRenting(false)
     }
   }
 
-  // Instagram Story Share handler
   const handleShareStory = async () => {
-    setSharing(true)
+    setSharingThisShit(true)
     setMessage('')
     try {
       const canvas = document.createElement('canvas')
@@ -53,17 +50,14 @@ export default function BookDetailPage() {
       canvas.height = 1920
       const ctx = canvas.getContext('2d')
 
-      // 1. Draw dark background
-      ctx.fillStyle = '#1a120c' // var(--brown-900)
+      ctx.fillStyle = '#1a120c'
       ctx.fillRect(0, 0, 1080, 1920)
 
-      // 2. Draw Text (Top)
-      ctx.fillStyle = '#c9956c' // var(--rose-gold)
+      ctx.fillStyle = '#c9956c'
       ctx.font = 'bold 50px sans-serif'
       ctx.textAlign = 'center'
       ctx.fillText("Available to rent on BookFlix!", 540, 250)
 
-      // Helper to load image securely for canvas
       const loadImg = (src) => new Promise((resolve, reject) => {
         const img = new Image()
         img.crossOrigin = 'anonymous'
@@ -72,7 +66,6 @@ export default function BookDetailPage() {
         img.src = src
       })
 
-      // 3. Draw Book Cover (Draw BEFORE text so shadow doesn't overlap text)
       if (book.cover_url) {
         const coverImg = await loadImg(book.cover_url)
         const coverWidth = 700
@@ -92,20 +85,17 @@ export default function BookDetailPage() {
         ctx.shadowColor = 'transparent'
       }
 
-      // 4. Draw Book Title and Author (Bottom)
-      ctx.fillStyle = '#f9fafb' // var(--gray-50)
+      ctx.fillStyle = '#f9fafb'
       ctx.font = 'bold 80px sans-serif'
-      // Limit title length or it will overflow. Simple approach:
       const safeTitle = book.title.length > 25 ? book.title.substring(0, 22) + '...' : book.title
-      ctx.fillText(safeTitle, 540, 1450) // Moved down for breathing room
+      ctx.fillText(safeTitle, 540, 1450)
 
-      ctx.fillStyle = '#a8a29e' // var(--text-muted)
+      ctx.fillStyle = '#a8a29e'
       ctx.font = '45px sans-serif'
       ctx.fillText(`by ${book.author}`, 540, 1530)
 
 
 
-      // 5. Draw BookFlix Logo
       try {
         const logoImg = await loadImg(window.location.origin + '/logo.png')
         const logoHeight = 160
@@ -115,11 +105,9 @@ export default function BookDetailPage() {
         console.error("Failed to load logo", e)
       }
 
-      // 6. Export and Share
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
       const file = new File([blob], 'bookflix-story.png', { type: 'image/png' })
 
-      // Check if device supports native file sharing (Mobile)
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -127,7 +115,6 @@ export default function BookDetailPage() {
           text: `Reading ${book.title} on BookFlix!`,
         })
       } else {
-        // Fallback for Desktop: Download image
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
@@ -136,11 +123,11 @@ export default function BookDetailPage() {
         URL.revokeObjectURL(url)
         setMessage('Story graphic downloaded! You can now upload it to Instagram.')
       }
-    } catch (err) {
-      console.error(err)
+    } catch (fuckinError) {
+      console.error(fuckinError)
       setMessage('Failed to generate story image.')
     } finally {
-      setSharing(false)
+      setSharingThisShit(false)
     }
   }
 
@@ -158,7 +145,6 @@ export default function BookDetailPage() {
     )
   }
 
-  // Determine which cover to show
   const currentCover = showBack && book.back_cover_url ? book.back_cover_url : book.cover_url
 
   return (
