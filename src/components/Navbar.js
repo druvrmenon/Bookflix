@@ -36,6 +36,7 @@ export default function Navbar({ role }) {
   const adminLinks = [
     { href: '/admin', label: 'Dashboard' },
     { href: '/admin/book/new', label: 'Add Book' },
+    { href: '/admin/requests', label: 'Requests' },
     { href: '/admin/users', label: 'Users' },
     { href: '/admin/suggestions', label: 'Suggestions' },
   ]

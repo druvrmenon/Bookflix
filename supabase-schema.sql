@@ -146,6 +146,32 @@ DROP POLICY IF EXISTS "Admins can update suggestions" ON public.book_suggestions
 CREATE POLICY "Admins can update suggestions" ON public.book_suggestions
   FOR UPDATE USING (public.is_admin());
 
+-- Rent requests
+CREATE TABLE IF NOT EXISTS public.rent_requests (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  book_id UUID REFERENCES public.books(id) ON DELETE CASCADE NOT NULL,
+  message TEXT,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.rent_requests ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can view own requests" ON public.rent_requests;
+CREATE POLICY "Users can view own requests" ON public.rent_requests
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can view all requests" ON public.rent_requests;
+CREATE POLICY "Admins can view all requests" ON public.rent_requests
+  FOR SELECT USING (public.is_admin());
+
+DROP POLICY IF EXISTS "Users can create requests" ON public.rent_requests;
+CREATE POLICY "Users can create requests" ON public.rent_requests
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can update requests" ON public.rent_requests;
+CREATE POLICY "Admins can update requests" ON public.rent_requests
+  FOR UPDATE USING (public.is_admin());
 -- ============================================
 -- NOTE: 
 -- create the "book-covers" bucket and make it public

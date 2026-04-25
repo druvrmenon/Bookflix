@@ -30,12 +30,30 @@ export default function BookDetailPage() {
     setRenting(true)
     setMessage('')
     try {
-      setMessage('Redirecting to WhatsApp...')
-      const phoneNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || ''
-      const text = encodeURIComponent(`Hello! I would like to rent the book: *${book.title}* by ${book.author}.`)
-      window.open(`https://wa.me/${phoneNumber}?text=${text}`, '_blank')
-    } catch (damnError) {
-      setMessage(damnError.message || 'Failed to rent book')
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not logged in')
+
+      const { error: existCheck } = await supabase
+        .from('rent_requests')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('book_id', id)
+        .eq('status', 'pending')
+        .single()
+
+      if (!existCheck) {
+        setMessage('You already have a pending request for this book.')
+        return
+      }
+
+      const { error: insertErr } = await supabase
+        .from('rent_requests')
+        .insert({ user_id: user.id, book_id: id })
+
+      if (insertErr) throw insertErr
+      setMessage('Rent request sent! The owner will get back to you.')
+    } catch (err) {
+      setMessage(err.message || 'Failed to send request')
     } finally {
       setRenting(false)
     }
@@ -228,9 +246,9 @@ export default function BookDetailPage() {
           {/* Message banner */}
           {message && (
             <div className="auth-error" style={{
-              background: message.includes('WhatsApp') ? 'var(--green-bg)' : 'var(--red-bg)',
-              color: message.includes('WhatsApp') ? 'var(--green)' : 'var(--red)',
-              borderColor: message.includes('WhatsApp') ? 'rgba(74,222,128,0.3)' : 'rgba(248,113,113,0.3)',
+              background: message.includes('sent') ? 'var(--green-bg)' : message.includes('pending') ? 'rgba(251, 191, 36, 0.1)' : 'var(--red-bg)',
+              color: message.includes('sent') ? 'var(--green)' : message.includes('pending') ? 'var(--yellow)' : 'var(--red)',
+              borderColor: message.includes('sent') ? 'rgba(74,222,128,0.3)' : message.includes('pending') ? 'rgba(251,191,36,0.3)' : 'rgba(248,113,113,0.3)',
               marginBottom: '16px',
             }}>
               {message}
@@ -244,7 +262,7 @@ export default function BookDetailPage() {
               <button onClick={handleRent} className="btn btn-primary" disabled={renting}
                 style={{ width: '100%', maxWidth: '300px' }}>
                 {renting && <span className="spinner"></span>}
-                Rent This Book
+                Request to Rent
               </button>
             )}
 
