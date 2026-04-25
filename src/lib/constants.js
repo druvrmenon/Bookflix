@@ -12,6 +12,8 @@ export const GENRES = [
   'Self-Help',   // Personal development
   'Biography',   // Life stories
   'Academic',    // Textbooks, educational
+  'Teen',
+  'Mythology'
 ]
 
 // Available book languages — used in admin BookForm and customer FilterBar
