@@ -345,22 +345,33 @@ export default function BookForm({ book = null }) {
       {/* Google Books cover search modal */}
       {searchOpen && (
         <div className="crop-modal" onClick={() => setSearchOpen(false)}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--brown-800)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '100%', maxWidth: '600px', maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--brown-800)',
+            border: '1px solid rgba(201, 149, 108, 0.15)',
+            borderRadius: 'var(--radius-xl)',
+            padding: '24px',
+            width: '90vw',
+            maxWidth: '560px',
+            maxHeight: '80vh',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            boxShadow: 'var(--shadow-lg)',
+          }}>
             <h3 style={{ color: 'var(--gray-50)', marginBottom: '16px' }}>Search Book Cover</h3>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <form onSubmit={e => { e.preventDefault(); searchGoogleBooks() }} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
               <input
                 className="form-input"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && searchGoogleBooks()}
                 placeholder="Search by title or author..."
                 autoFocus
               />
-              <button type="button" className="btn btn-primary" onClick={searchGoogleBooks} disabled={searching}
+              <button type="submit" className="btn btn-primary" disabled={searching}
                 style={{ whiteSpace: 'nowrap' }}>
                 {searching ? '...' : 'Search'}
               </button>
-            </div>
+            </form>
             <div style={{ overflowY: 'auto', flex: 1 }}>
               {searchResults.length === 0 && !searching && (
                 <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>
