@@ -264,18 +264,11 @@ export default function BookForm({ book = null }) {
           </div>
         </div>
 
-        {/* Cover uploads — front and back side by side */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        {/* Cover uploads */}
+        <div className="cover-upload-grid">
           {/* Front cover */}
           <div className="form-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-              <label className="form-label" style={{ margin: 0 }}>Front Cover</label>
-              <button type="button" className="btn btn-sm btn-secondary"
-                style={{ fontSize: '0.75rem', minHeight: '30px', padding: '4px 10px' }}
-                onClick={() => { setSearchQuery(title); setSearchOpen(true) }}>
-                🔍 Search Cover
-              </button>
-            </div>
+            <label className="form-label">Front Cover</label>
             <div className="file-upload">
               {coverPreview ? (
                 <img src={coverPreview} alt="Front cover" className="file-upload-preview" />
@@ -290,6 +283,11 @@ export default function BookForm({ book = null }) {
               <input type="file" accept="image/*" onChange={(e) => { handleFileChange(e, 'front'); setCoverIsExternal(false) }}
                 aria-label="Upload front cover" />
             </div>
+            <button type="button" className="btn btn-secondary btn-sm"
+              style={{ width: '100%', marginTop: '8px' }}
+              onClick={() => { setSearchQuery(title); setSearchOpen(true) }}>
+              🔍 Search Cover Online
+            </button>
           </div>
 
           {/* Back cover */}
@@ -348,49 +346,55 @@ export default function BookForm({ book = null }) {
           <div onClick={e => e.stopPropagation()} style={{
             background: 'var(--brown-800)',
             border: '1px solid rgba(201, 149, 108, 0.15)',
-            borderRadius: 'var(--radius-xl)',
-            padding: '24px',
-            width: '90vw',
-            maxWidth: '560px',
-            maxHeight: '80vh',
+            borderRadius: 'var(--radius-lg)',
+            padding: '20px',
+            width: 'calc(100vw - 32px)',
+            maxWidth: '520px',
+            maxHeight: 'calc(100vh - 120px)',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
             boxShadow: 'var(--shadow-lg)',
           }}>
-            <h3 style={{ color: 'var(--gray-50)', marginBottom: '16px' }}>Search Book Cover</h3>
-            <form onSubmit={e => { e.preventDefault(); searchGoogleBooks() }} style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <h3 style={{ color: 'var(--gray-50)', marginBottom: '12px', fontSize: '1.1rem' }}>Search Book Cover</h3>
+            <form onSubmit={e => { e.preventDefault(); searchGoogleBooks() }} style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <input
                 className="form-input"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search by title or author..."
+                placeholder="Title or author..."
                 autoFocus
+                style={{ minHeight: '40px' }}
               />
               <button type="submit" className="btn btn-primary" disabled={searching}
-                style={{ whiteSpace: 'nowrap' }}>
-                {searching ? '...' : 'Search'}
+                style={{ whiteSpace: 'nowrap', minHeight: '40px', padding: '8px 16px' }}>
+                {searching ? '...' : 'Go'}
               </button>
             </form>
-            <div style={{ overflowY: 'auto', flex: 1 }}>
+            <div style={{ overflowY: 'auto', flex: 1, WebkitOverflowScrolling: 'touch' }}>
               {searchResults.length === 0 && !searching && (
-                <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>
-                  {searchQuery ? 'No results. Try different keywords.' : 'Type a title and hit Search.'}
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0', fontSize: '0.9rem' }}>
+                  {searchQuery ? 'No covers found. Try different words.' : 'Type a title and hit Go.'}
                 </p>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
                 {searchResults.map((item) => {
                   const thumb = item.volumeInfo.imageLinks.thumbnail
                   return (
                     <div key={item.id}
                       onClick={() => pickSearchCover(thumb)}
-                      style={{ cursor: 'pointer', borderRadius: 'var(--radius)', overflow: 'hidden', border: '2px solid transparent', transition: 'border-color 0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--rose-gold)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+                      style={{
+                        cursor: 'pointer',
+                        borderRadius: 'var(--radius-sm)',
+                        overflow: 'hidden',
+                        border: '2px solid transparent',
+                        transition: 'border-color 0.2s',
+                        background: 'var(--brown-700)',
+                      }}
                     >
                       <img src={thumb.replace('http://', 'https://')} alt={item.volumeInfo.title}
                         style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block' }} />
-                      <div style={{ padding: '6px', fontSize: '0.7rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ padding: '4px 6px', fontSize: '0.65rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {item.volumeInfo.title}
                       </div>
                     </div>
@@ -398,8 +402,8 @@ export default function BookForm({ book = null }) {
                 })}
               </div>
             </div>
-            <div style={{ marginTop: '16px', textAlign: 'right' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => setSearchOpen(false)}>Close</button>
+            <div style={{ marginTop: '12px', textAlign: 'right' }}>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setSearchOpen(false)}>Close</button>
             </div>
           </div>
         </div>
@@ -407,3 +411,4 @@ export default function BookForm({ book = null }) {
     </>
   )
 }
+

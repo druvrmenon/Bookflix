@@ -1447,3 +1447,16 @@ h4 { font-size: 1.1rem; }
   gap: 12px;
   margin-top: 20px;
 }
+
+/* Cover upload responsive grid */
+.cover-upload-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+@media (min-width: 480px) {
+  .cover-upload-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
