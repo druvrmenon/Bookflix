@@ -177,6 +177,40 @@ DROP POLICY IF EXISTS "Admins can update requests" ON public.rent_requests;
 CREATE POLICY "Admins can update requests" ON public.rent_requests
   FOR UPDATE USING (public.is_admin());
 -- ============================================
+-- Book Reviews
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.book_reviews (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  book_id UUID REFERENCES public.books(id) ON DELETE CASCADE NOT NULL,
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  review_text TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(book_id, user_id)
+);
+ALTER TABLE public.book_reviews ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view reviews" ON public.book_reviews;
+CREATE POLICY "Anyone can view reviews" ON public.book_reviews
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can create their own reviews" ON public.book_reviews;
+CREATE POLICY "Users can create their own reviews" ON public.book_reviews
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update their own reviews" ON public.book_reviews;
+CREATE POLICY "Users can update their own reviews" ON public.book_reviews
+  FOR UPDATE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can delete their own reviews" ON public.book_reviews;
+CREATE POLICY "Users can delete their own reviews" ON public.book_reviews
+  FOR DELETE USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can delete any review" ON public.book_reviews;
+CREATE POLICY "Admins can delete any review" ON public.book_reviews
+  FOR DELETE USING (public.is_admin());
+
+-- ============================================
 -- NOTE: 
 -- create the "book-covers" bucket and make it public
 -- manually set someone to admin in the db first

@@ -6,7 +6,15 @@ import Link from 'next/link'
 
 export default function CustomerRentalsPage() {
   const [requests, setRequests] = useState([])
+  const [userReviews, setUserReviews] = useState([])
   const [loading, setLoading] = useState(true)
+  
+  // Review Modal State
+  const [reviewModalBook, setReviewModalBook] = useState(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+
   const supabase = createClient()
 
   useEffect(() => {
@@ -20,7 +28,14 @@ export default function CustomerRentalsPage() {
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
+      // Fetch user's existing reviews to avoid showing the rate button if already reviewed
+      const { data: reviewData } = await supabase
+        .from('book_reviews')
+        .select('book_id')
+        .eq('user_id', user.id)
+
       setRequests(data || [])
+      setUserReviews(reviewData?.map(r => r.book_id) || [])
       setLoading(false)
     }
     fetch()
@@ -31,6 +46,37 @@ export default function CustomerRentalsPage() {
     approved: { bg: 'var(--green-bg)', color: 'var(--green)', label: '✓ Approved' },
     rejected: { bg: 'var(--red-bg)', color: 'var(--red)', label: '✕ Rejected' },
     returned: { bg: 'rgba(201, 149, 108, 0.12)', color: 'var(--rose-gold)', label: '↩ Returned' },
+  }
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault()
+    if (!reviewModalBook) return
+    setSubmittingReview(true)
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not logged in')
+
+      const { error } = await supabase
+        .from('book_reviews')
+        .insert({
+          book_id: reviewModalBook.id,
+          user_id: user.id,
+          rating: parseInt(reviewRating),
+          review_text: reviewText.trim() || null
+        })
+
+      if (error) throw error
+      
+      setUserReviews([...userReviews, reviewModalBook.id])
+      setReviewModalBook(null)
+      setReviewText('')
+      setReviewRating(5)
+    } catch (err) {
+      alert(err.message || 'Failed to submit review')
+    } finally {
+      setSubmittingReview(false)
+    }
   }
 
   return (
@@ -80,16 +126,27 @@ export default function CustomerRentalsPage() {
                     by {req.books?.author || '?'}
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
-                    <span style={{
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
-                      padding: '3px 10px',
-                      borderRadius: '20px',
-                      backgroundColor: s.bg,
-                      color: s.color,
-                    }}>
-                      {s.label}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        fontSize: '0.78rem',
+                        fontWeight: 600,
+                        padding: '3px 10px',
+                        borderRadius: '20px',
+                        backgroundColor: s.bg,
+                        color: s.color,
+                      }}>
+                        {s.label}
+                      </span>
+                      {req.status === 'returned' && !userReviews.includes(req.books?.id) && (
+                        <button 
+                          className="btn btn-sm" 
+                          style={{ padding: '2px 8px', fontSize: '0.75rem', backgroundColor: 'rgba(201, 149, 108, 0.15)', color: 'var(--rose-gold)', border: '1px solid rgba(201, 149, 108, 0.3)' }}
+                          onClick={() => setReviewModalBook(req.books)}
+                        >
+                          ⭐ Rate Book
+                        </button>
+                      )}
+                    </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                       {new Date(req.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
@@ -104,6 +161,60 @@ export default function CustomerRentalsPage() {
               </div>
             )
           })}
+        </div>
+      )}
+
+      {/* Review Modal */}
+      {reviewModalBook && (
+        <div className="crop-modal" onClick={() => setReviewModalBook(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--brown-800)',
+            border: '1px solid rgba(201, 149, 108, 0.15)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '24px',
+            width: 'calc(100vw - 32px)',
+            maxWidth: '400px',
+            boxShadow: 'var(--shadow-lg)',
+          }}>
+            <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Rate "{reviewModalBook.title}"</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+              Hope you enjoyed reading this! Let others know what you think.
+            </p>
+            <form onSubmit={handleSubmitReview} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ marginBottom: '8px' }}>Rating</label>
+                <div style={{ display: 'flex', gap: '8px', fontSize: '1.8rem' }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <span 
+                      key={star} 
+                      onClick={() => setReviewRating(star)}
+                      style={{ cursor: 'pointer', color: star <= reviewRating ? 'var(--yellow)' : 'var(--border-color)', transition: 'color 0.2s' }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Review (optional)</label>
+                <textarea 
+                  className="form-input" 
+                  rows="3" 
+                  placeholder="Share your thoughts on the book..."
+                  value={reviewText}
+                  onChange={e => setReviewText(e.target.value)}
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
+                  onClick={() => setReviewModalBook(null)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={submittingReview}>
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

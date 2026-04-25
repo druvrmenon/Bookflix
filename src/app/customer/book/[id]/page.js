@@ -22,11 +22,49 @@ export default function BookDetailPage() {
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
 
+  // Reviews
+  const [reviews, setReviews] = useState([])
+  const [userReview, setUserReview] = useState(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+  const [canReview, setCanReview] = useState(false)
+
   useEffect(() => {
     const fetchBook = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
       const { data: fuckingData, error: shitError } = await supabase
         .from('books').select('*').eq('id', id).single()
       if (!shitError && fuckingData) setBook(fuckingData)
+
+      // Fetch reviews
+      const { data: reviewsData } = await supabase
+        .from('book_reviews')
+        .select('*, profiles(full_name)')
+        .eq('book_id', id)
+        .order('created_at', { ascending: false })
+      
+      if (reviewsData) {
+        setReviews(reviewsData)
+        if (user) {
+          const myReview = reviewsData.find(r => r.user_id === user.id)
+          if (myReview) setUserReview(myReview)
+
+          // Check if user has returned the book
+          const { data: rentData } = await supabase
+            .from('rent_requests')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('book_id', id)
+            .eq('status', 'returned')
+            .limit(1)
+            
+          if (rentData && rentData.length > 0) {
+            setCanReview(true)
+          }
+        }
+      }
+
       setLoading(false)
     }
     fetchBook()
@@ -81,6 +119,37 @@ export default function BookDetailPage() {
       setMessage(err.message || 'Failed to send request')
     } finally {
       setRenting(false)
+    }
+  }
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault()
+    setSubmittingReview(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not logged in')
+
+      const { data, error } = await supabase
+        .from('book_reviews')
+        .insert({
+          book_id: id,
+          user_id: user.id,
+          rating: parseInt(reviewRating),
+          review_text: reviewText.trim() || null
+        })
+        .select('*, profiles(full_name)')
+        .single()
+      
+      if (error) throw error
+
+      setReviews([data, ...reviews])
+      setUserReview(data)
+      setReviewText('')
+      setReviewRating(5)
+    } catch (err) {
+      alert(err.message || 'Failed to submit review')
+    } finally {
+      setSubmittingReview(false)
     }
   }
 
@@ -234,6 +303,15 @@ export default function BookDetailPage() {
         <div className="book-detail-info">
           <h1>{book.title}</h1>
           <div className="book-detail-author">by {book.author}</div>
+          
+          {/* Average Rating */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--text-muted)' }}>
+            <span style={{ color: 'var(--yellow)', fontSize: '1.2rem' }}>★</span>
+            <span style={{ fontWeight: 'bold', color: 'var(--text)' }}>
+              {reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : 'New'}
+            </span>
+            <span style={{ fontSize: '0.85rem' }}>({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</span>
+          </div>
 
           {/* Genre and language badges */}
           <div className="book-detail-meta">
@@ -310,6 +388,92 @@ export default function BookDetailPage() {
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Reviews Section */}
+      <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '24px' }}>Reviews</h2>
+        
+        {/* Write a review form */}
+        {!userReview ? (
+          canReview ? (
+            <div className="card" style={{ marginBottom: '24px', backgroundColor: 'var(--bg-secondary)' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '12px' }}>Leave a Review</h3>
+              <form onSubmit={handleSubmitReview}>
+                <div className="form-group">
+                  <label className="form-label" style={{ marginBottom: '8px' }}>Rating</label>
+                  <div style={{ display: 'flex', gap: '8px', fontSize: '1.5rem' }}>
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <span 
+                        key={star} 
+                        onClick={() => setReviewRating(star)}
+                        style={{ cursor: 'pointer', color: star <= reviewRating ? 'var(--yellow)' : 'var(--border-color)' }}
+                      >
+                        ★
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Review (optional)</label>
+                  <textarea 
+                    className="form-input" 
+                    rows="3" 
+                    placeholder="What did you think of this book?"
+                    value={reviewText}
+                    onChange={e => setReviewText(e.target.value)}
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={submittingReview}>
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </form>
+            </div>
+          ) : (
+            <div className="card" style={{ marginBottom: '24px', backgroundColor: 'var(--bg-secondary)', textAlign: 'center', padding: '16px' }}>
+              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>You can review this book after you have rented and returned it.</p>
+            </div>
+          )
+        ) : (
+          <div className="card" style={{ marginBottom: '24px', backgroundColor: 'var(--bg-secondary)', border: '1px solid rgba(74,222,128,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <strong>Your Review</strong>
+              <div style={{ color: 'var(--yellow)' }}>
+                {'★'.repeat(userReview.rating)}{'☆'.repeat(5 - userReview.rating)}
+              </div>
+            </div>
+            {userReview.review_text && (
+              <p style={{ color: 'var(--text-muted)', margin: 0 }}>{userReview.review_text}</p>
+            )}
+          </div>
+        )}
+
+        {/* Reviews List */}
+        {reviews.length === 0 ? (
+          <p style={{ color: 'var(--text-dim)' }}>No reviews yet. Be the first to review!</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {reviews.map(review => {
+              if (userReview && review.id === userReview.id) return null // don't show user's review twice
+              return (
+                <div key={review.id} style={{ padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <strong>{review.profiles?.full_name || 'Anonymous'}</strong>
+                    <div style={{ color: 'var(--yellow)' }}>
+                      {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
+                    </div>
+                  </div>
+                  {review.review_text && (
+                    <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>{review.review_text}</p>
+                  )}
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '8px' }}>
+                    {new Date(review.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Rent request modal */}
