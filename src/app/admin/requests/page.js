@@ -97,7 +97,9 @@ export default function AdminRentRequestsPage() {
                     by {req.books?.author || '?'}
                   </p>
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
-                    <p style={{ margin: '0 0 2px 0' }}>From: <span style={{ color: 'var(--text-muted)' }}>{req.profiles?.full_name || 'Unknown'}</span></p>
+                    <p style={{ margin: '0 0 2px 0' }}>From: <strong style={{ color: 'var(--text)' }}>{req.contact_name || req.profiles?.full_name || 'Unknown'}</strong></p>
+                    <p style={{ margin: '0 0 2px 0' }}>📞 <a href={`tel:${req.phone}`} style={{ color: 'var(--rose-gold)', textDecoration: 'none' }}>{req.phone || 'No phone'}</a></p>
+                    {req.address && <p style={{ margin: '0 0 2px 0' }}>📍 {req.address}</p>}
                     <p style={{ margin: 0 }}>{new Date(req.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>

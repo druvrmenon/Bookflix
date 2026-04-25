@@ -16,6 +16,12 @@ export default function BookDetailPage() {
   const [showBack, setShowBack] = useState(false)
   const [sharingThisShit, setSharingThisShit] = useState(false)
 
+  // Rent request modal
+  const [rentModal, setRentModal] = useState(false)
+  const [contactName, setContactName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
+
   useEffect(() => {
     const fetchBook = async () => {
       const { data: fuckingData, error: shitError } = await supabase
@@ -26,7 +32,18 @@ export default function BookDetailPage() {
     fetchBook()
   }, [id])
 
-  const handleRent = async () => {
+  const openRentModal = () => {
+    setMessage('')
+    setContactName('')
+    setPhone('')
+    setAddress('')
+    setRentModal(true)
+  }
+
+  const submitRentRequest = async (e) => {
+    e.preventDefault()
+    if (!contactName.trim() || !phone.trim()) return
+
     setRenting(true)
     setMessage('')
     try {
@@ -43,14 +60,22 @@ export default function BookDetailPage() {
 
       if (!existCheck) {
         setMessage('You already have a pending request for this book.')
+        setRentModal(false)
         return
       }
 
       const { error: insertErr } = await supabase
         .from('rent_requests')
-        .insert({ user_id: user.id, book_id: id })
+        .insert({
+          user_id: user.id,
+          book_id: id,
+          contact_name: contactName.trim(),
+          phone: phone.trim(),
+          address: address.trim() || null,
+        })
 
       if (insertErr) throw insertErr
+      setRentModal(false)
       setMessage('Rent request sent! The owner will get back to you.')
     } catch (err) {
       setMessage(err.message || 'Failed to send request')
@@ -259,9 +284,8 @@ export default function BookDetailPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px', alignItems: 'center' }}>
             {/* Rent button */}
             {book.available && (
-              <button onClick={handleRent} className="btn btn-primary" disabled={renting}
+              <button onClick={openRentModal} className="btn btn-primary" disabled={renting}
                 style={{ width: '100%', maxWidth: '300px' }}>
-                {renting && <span className="spinner"></span>}
                 Request to Rent
               </button>
             )}
@@ -287,6 +311,53 @@ export default function BookDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Rent request modal */}
+      {rentModal && (
+        <div className="crop-modal" onClick={() => setRentModal(false)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--brown-800)',
+            border: '1px solid rgba(201, 149, 108, 0.15)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '24px',
+            width: 'calc(100vw - 32px)',
+            maxWidth: '400px',
+            boxShadow: 'var(--shadow-lg)',
+          }}>
+            <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Request to Rent</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+              Enter your details so the owner can reach you.
+            </p>
+            <form onSubmit={submitRentRequest} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" htmlFor="rent-name">Your Name *</label>
+                <input id="rent-name" className="form-input" type="text"
+                  value={contactName} onChange={e => setContactName(e.target.value)}
+                  placeholder="Full name" required />
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" htmlFor="rent-phone">Phone Number *</label>
+                <input id="rent-phone" className="form-input" type="tel"
+                  value={phone} onChange={e => setPhone(e.target.value)}
+                  placeholder="e.g. 9876543210" required />
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" htmlFor="rent-addr">Address</label>
+                <textarea id="rent-addr" className="form-input" rows={2}
+                  value={address} onChange={e => setAddress(e.target.value)}
+                  placeholder="Your address (optional)" style={{ resize: 'vertical' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
+                  onClick={() => setRentModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={renting}>
+                  {renting ? '...' : 'Send Request'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

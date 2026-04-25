@@ -151,6 +151,9 @@ CREATE TABLE IF NOT EXISTS public.rent_requests (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   book_id UUID REFERENCES public.books(id) ON DELETE CASCADE NOT NULL,
+  contact_name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  address TEXT,
   message TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned')),
   created_at TIMESTAMPTZ DEFAULT NOW()
