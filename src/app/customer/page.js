@@ -17,6 +17,12 @@ export default function CatalogPage() {
   const [sortBy, setSortBy] = useState('newest') // Sort option
   const supabase = createClient()
 
+  // Auto-review modal state
+  const [autoReviewModalBook, setAutoReviewModalBook] = useState(null)
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewText, setReviewText] = useState('')
+  const [submittingReview, setSubmittingReview] = useState(false)
+
   // Fetch books on mount
   useEffect(() => {
     const fetchData = async () => {
@@ -27,6 +33,32 @@ export default function CatalogPage() {
         .order('created_at', { ascending: false })
 
       if (booksData) setBooks(booksData)
+      
+      // Check for unreviewed returned books
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const { data: rentData } = await supabase
+          .from('rent_requests')
+          .select('book_id, books (id, title)')
+          .eq('user_id', user.id)
+          .eq('status', 'returned')
+          
+        if (rentData && rentData.length > 0) {
+          const { data: reviewData } = await supabase
+            .from('book_reviews')
+            .select('book_id')
+            .eq('user_id', user.id)
+            
+          const reviewedBookIds = reviewData?.map(r => r.book_id) || []
+          const unreviewedRentals = rentData.filter(r => !reviewedBookIds.includes(r.book_id))
+          
+          // If they have unreviewed books, pop up the first one
+          if (unreviewedRentals.length > 0 && unreviewedRentals[0].books) {
+            setAutoReviewModalBook(unreviewedRentals[0].books)
+          }
+        }
+      }
+
       setLoading(false)
     }
     fetchData()
@@ -65,6 +97,36 @@ export default function CatalogPage() {
 
     return result
   }, [books, search, genre, language, sortBy])
+
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault()
+    if (!autoReviewModalBook) return
+    setSubmittingReview(true)
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not logged in')
+
+      const { error } = await supabase
+        .from('book_reviews')
+        .insert({
+          book_id: autoReviewModalBook.id,
+          user_id: user.id,
+          rating: parseInt(reviewRating),
+          review_text: reviewText.trim() || null
+        })
+
+      if (error) throw error
+      
+      setAutoReviewModalBook(null)
+      setReviewText('')
+      setReviewRating(5)
+    } catch (err) {
+      alert(err.message || 'Failed to submit review')
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
 
   if (loading) return <BookLoading text="Loading catalog..." />
 
@@ -118,6 +180,60 @@ export default function CatalogPage() {
               book={book}
             />
           ))}
+        </div>
+      )}
+
+      {/* Auto-Review Modal */}
+      {autoReviewModalBook && (
+        <div className="crop-modal" onClick={() => setAutoReviewModalBook(null)}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--brown-800)',
+            border: '1px solid rgba(201, 149, 108, 0.15)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '24px',
+            width: 'calc(100vw - 32px)',
+            maxWidth: '400px',
+            boxShadow: 'var(--shadow-lg)',
+          }}>
+            <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>How was "{autoReviewModalBook.title}"?</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+              You recently returned this book. Take a moment to rate it!
+            </p>
+            <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label" style={{ marginBottom: '8px' }}>Rating</label>
+                <div style={{ display: 'flex', gap: '8px', fontSize: '1.8rem' }}>
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <span 
+                      key={star} 
+                      onClick={() => setReviewRating(star)}
+                      style={{ cursor: 'pointer', color: star <= reviewRating ? 'var(--yellow)' : 'var(--border-color)', transition: 'color 0.2s' }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="form-group" style={{ margin: 0 }}>
+                <label className="form-label">Review (optional)</label>
+                <textarea 
+                  className="form-input" 
+                  rows="3" 
+                  placeholder="Share your thoughts on the book..."
+                  value={reviewText}
+                  onChange={e => setReviewText(e.target.value)}
+                  style={{ resize: 'vertical' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
+                  onClick={() => setAutoReviewModalBook(null)}>Skip for now</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={submittingReview}>
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
