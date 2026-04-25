@@ -94,6 +94,12 @@ export default function CustomerRentalsPage() {
                       {new Date(req.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                   </div>
+                  {req.status === 'approved' && req.due_date && (
+                    <div style={{ marginTop: '6px', fontSize: '0.78rem', color: new Date(req.due_date) < new Date() ? 'var(--red)' : 'var(--text-muted)' }}>
+                      📅 Return by: <strong>{new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
+                      {new Date(req.due_date) < new Date() && ' ⚠️ Overdue!'}
+                    </div>
+                  )}
                 </div>
               </div>
             )

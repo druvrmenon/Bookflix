@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS public.rent_requests (
   address TEXT,
   message TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned')),
+  due_date DATE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 ALTER TABLE public.rent_requests ENABLE ROW LEVEL SECURITY;
