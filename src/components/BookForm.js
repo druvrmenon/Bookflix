@@ -36,19 +36,53 @@ export default function BookForm({ book = null }) {
   // Front cover states
   const [coverFile, setCoverFile] = useState(null)
   const [coverPreview, setCoverPreview] = useState(book?.cover_url || null)
+  const [coverIsExternal, setCoverIsExternal] = useState(false)
 
   // Back cover states
   const [backCoverFile, setBackCoverFile] = useState(null)
   const [backCoverPreview, setBackCoverPreview] = useState(book?.back_cover_url || null)
 
   // Image crop states
-  const [cropImage, setCropImage] = useState(null) // Image source for cropping
-  const [crop, setCrop] = useState(undefined) // Current crop selection
-  const [cropTarget, setCropTarget] = useState(null) // 'front' or 'back'
-  const imgRef = useRef(null) // Reference to crop image element
+  const [cropImage, setCropImage] = useState(null)
+  const [crop, setCrop] = useState(undefined)
+  const [cropTarget, setCropTarget] = useState(null)
+  const imgRef = useRef(null)
+
+  // Google Books search states
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [searching, setSearching] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const searchGoogleBooks = async () => {
+    if (!searchQuery.trim()) return
+    setSearching(true)
+    try {
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery)}&maxResults=12`)
+      const data = await res.json()
+      const books = (data.items || []).filter(b => b.volumeInfo?.imageLinks?.thumbnail)
+      setSearchResults(books)
+    } catch (err) {
+      console.error('Google Books search failed:', err)
+      setSearchResults([])
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  const pickSearchCover = (url) => {
+    // Google gives http thumbnails, upgrade to https and get bigger image
+    const hdUrl = url.replace('http://', 'https://').replace('zoom=1', 'zoom=3')
+    setCoverPreview(hdUrl)
+    setCoverFile(null)
+    setCoverIsExternal(true)
+    setSearchOpen(false)
+    setSearchResults([])
+    setSearchQuery('')
+  }
 
   // Handle file selection — opens crop modal
   const handleFileChange = (e, target) => {
@@ -143,9 +177,10 @@ export default function BookForm({ book = null }) {
       let cover_url = book?.cover_url || null
       let back_cover_url = book?.back_cover_url || null
 
-      // Upload front cover if new file selected
       if (coverFile) {
         cover_url = await uploadCover(coverFile, 'front-')
+      } else if (coverIsExternal && coverPreview) {
+        cover_url = coverPreview
       }
 
       // Upload back cover if new file selected
@@ -233,7 +268,14 @@ export default function BookForm({ book = null }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {/* Front cover */}
           <div className="form-group">
-            <label className="form-label">Front Cover</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+              <label className="form-label" style={{ margin: 0 }}>Front Cover</label>
+              <button type="button" className="btn btn-sm btn-secondary"
+                style={{ fontSize: '0.75rem', minHeight: '30px', padding: '4px 10px' }}
+                onClick={() => { setSearchQuery(title); setSearchOpen(true) }}>
+                🔍 Search Cover
+              </button>
+            </div>
             <div className="file-upload">
               {coverPreview ? (
                 <img src={coverPreview} alt="Front cover" className="file-upload-preview" />
@@ -245,7 +287,7 @@ export default function BookForm({ book = null }) {
                   <div className="file-upload-text">Front cover</div>
                 </>
               )}
-              <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'front')}
+              <input type="file" accept="image/*" onChange={(e) => { handleFileChange(e, 'front'); setCoverIsExternal(false) }}
                 aria-label="Upload front cover" />
             </div>
           </div>
@@ -296,6 +338,58 @@ export default function BookForm({ book = null }) {
             <button className="btn btn-primary" onClick={handleCropConfirm}>
               Apply Crop
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Google Books cover search modal */}
+      {searchOpen && (
+        <div className="crop-modal" onClick={() => setSearchOpen(false)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--brown-800)', borderRadius: 'var(--radius-xl)', padding: '24px', width: '100%', maxWidth: '600px', maxHeight: '80vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ color: 'var(--gray-50)', marginBottom: '16px' }}>Search Book Cover</h3>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+              <input
+                className="form-input"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && searchGoogleBooks()}
+                placeholder="Search by title or author..."
+                autoFocus
+              />
+              <button type="button" className="btn btn-primary" onClick={searchGoogleBooks} disabled={searching}
+                style={{ whiteSpace: 'nowrap' }}>
+                {searching ? '...' : 'Search'}
+              </button>
+            </div>
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              {searchResults.length === 0 && !searching && (
+                <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem 0' }}>
+                  {searchQuery ? 'No results. Try different keywords.' : 'Type a title and hit Search.'}
+                </p>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
+                {searchResults.map((item) => {
+                  const thumb = item.volumeInfo.imageLinks.thumbnail
+                  return (
+                    <div key={item.id}
+                      onClick={() => pickSearchCover(thumb)}
+                      style={{ cursor: 'pointer', borderRadius: 'var(--radius)', overflow: 'hidden', border: '2px solid transparent', transition: 'border-color 0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--rose-gold)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
+                    >
+                      <img src={thumb.replace('http://', 'https://')} alt={item.volumeInfo.title}
+                        style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block' }} />
+                      <div style={{ padding: '6px', fontSize: '0.7rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.volumeInfo.title}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+            <div style={{ marginTop: '16px', textAlign: 'right' }}>
+              <button type="button" className="btn btn-secondary" onClick={() => setSearchOpen(false)}>Close</button>
+            </div>
           </div>
         </div>
       )}
