@@ -74,11 +74,7 @@ export default function BookForm({ book = null }) {
   }
 
   const pickSearchCover = (item) => {
-    // prefer Google Books cover via ISBN (much higher res)
-    const isbn = item.isbn?.[0]
-    const hdUrl = isbn
-      ? `https://books.google.com/books/content?vid=isbn:${isbn}&printsec=frontcover&img=1&zoom=0`
-      : `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg`
+    const hdUrl = `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg`
     setCoverPreview(hdUrl)
     setCoverFile(null)
     setCoverIsExternal(true)
