@@ -57,25 +57,24 @@ export default function BookForm({ book = null }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const searchGoogleBooks = async () => {
+  const searchBookCovers = async () => {
     if (!searchQuery.trim()) return
     setSearching(true)
     try {
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(searchQuery)}&maxResults=12`)
+      const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(searchQuery)}&limit=12&fields=key,title,author_name,cover_i`)
       const data = await res.json()
-      const books = (data.items || []).filter(b => b.volumeInfo?.imageLinks?.thumbnail)
-      setSearchResults(books)
+      const results = (data.docs || []).filter(b => b.cover_i)
+      setSearchResults(results)
     } catch (err) {
-      console.error('Google Books search failed:', err)
+      console.error('Cover search failed:', err)
       setSearchResults([])
     } finally {
       setSearching(false)
     }
   }
 
-  const pickSearchCover = (url) => {
-    // Google gives http thumbnails, upgrade to https and get bigger image
-    const hdUrl = url.replace('http://', 'https://').replace('zoom=1', 'zoom=3')
+  const pickSearchCover = (coverId) => {
+    const hdUrl = `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`
     setCoverPreview(hdUrl)
     setCoverFile(null)
     setCoverIsExternal(true)
@@ -357,7 +356,7 @@ export default function BookForm({ book = null }) {
             boxShadow: 'var(--shadow-lg)',
           }}>
             <h3 style={{ color: 'var(--gray-50)', marginBottom: '12px', fontSize: '1.1rem' }}>Search Book Cover</h3>
-            <form onSubmit={e => { e.preventDefault(); searchGoogleBooks() }} style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+            <form onSubmit={e => { e.preventDefault(); searchBookCovers() }} style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
               <input
                 className="form-input"
                 value={searchQuery}
@@ -378,28 +377,25 @@ export default function BookForm({ book = null }) {
                 </p>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
-                {searchResults.map((item) => {
-                  const thumb = item.volumeInfo.imageLinks.thumbnail
-                  return (
-                    <div key={item.id}
-                      onClick={() => pickSearchCover(thumb)}
-                      style={{
-                        cursor: 'pointer',
-                        borderRadius: 'var(--radius-sm)',
-                        overflow: 'hidden',
-                        border: '2px solid transparent',
-                        transition: 'border-color 0.2s',
-                        background: 'var(--brown-700)',
-                      }}
-                    >
-                      <img src={thumb.replace('http://', 'https://')} alt={item.volumeInfo.title}
-                        style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block' }} />
-                      <div style={{ padding: '4px 6px', fontSize: '0.65rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.volumeInfo.title}
-                      </div>
+                {searchResults.map((item) => (
+                  <div key={item.key}
+                    onClick={() => pickSearchCover(item.cover_i)}
+                    style={{
+                      cursor: 'pointer',
+                      borderRadius: 'var(--radius-sm)',
+                      overflow: 'hidden',
+                      border: '2px solid transparent',
+                      transition: 'border-color 0.2s',
+                      background: 'var(--brown-700)',
+                    }}
+                  >
+                    <img src={`https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg`} alt={item.title}
+                      style={{ width: '100%', aspectRatio: '2/3', objectFit: 'cover', display: 'block' }} />
+                    <div style={{ padding: '4px 6px', fontSize: '0.65rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.title}
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
               </div>
             </div>
             <div style={{ marginTop: '12px', textAlign: 'right' }}>
