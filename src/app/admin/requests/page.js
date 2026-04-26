@@ -10,6 +10,9 @@ export default function AdminRentRequestsPage() {
   const [archiveOpen, setArchiveOpen] = useState(false)
   const [approveModal, setApproveModal] = useState(null)
   const [dueDate, setDueDate] = useState('')
+  const [archiveFilter, setArchiveFilter] = useState('all')
+  const [archiveSearch, setArchiveSearch] = useState('')
+  const [groupByPerson, setGroupByPerson] = useState(false)
   const supabase = createClient()
 
   useEffect(() => { fetchRequests() }, [])
@@ -96,6 +99,38 @@ export default function AdminRentRequestsPage() {
 
   const pendingReqs = requests.filter(r => r.status === 'pending')
   const archivedReqs = requests.filter(r => r.status !== 'pending')
+  const approvedReqs = archivedReqs.filter(r => r.status === 'approved')
+  const returnedReqs = archivedReqs.filter(r => r.status === 'returned')
+  const rejectedReqs = archivedReqs.filter(r => r.status === 'rejected')
+
+  const filteredArchived = (() => {
+    let result = archiveFilter === 'all' ? archivedReqs
+      : archiveFilter === 'approved' ? approvedReqs
+      : archiveFilter === 'returned' ? returnedReqs
+      : rejectedReqs
+    
+    if (archiveSearch.trim()) {
+      const q = archiveSearch.toLowerCase()
+      result = result.filter(r => 
+        (r.contact_name || '').toLowerCase().includes(q) ||
+        (r.profiles?.full_name || '').toLowerCase().includes(q) ||
+        (r.books?.title || '').toLowerCase().includes(q)
+      )
+    }
+    return result
+  })()
+
+  // Group by person
+  const groupedByPerson = (() => {
+    const groups = {}
+    filteredArchived.forEach(req => {
+      const name = req.contact_name || req.profiles?.full_name || 'Unknown'
+      if (!groups[name]) groups[name] = []
+      groups[name].push(req)
+    })
+    // Sort groups by name
+    return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]))
+  })()
 
   const renderCard = (req) => (
     <div key={req.id} className="card" style={{ display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
@@ -216,8 +251,153 @@ export default function AdminRentRequestsPage() {
               </button>
 
               {archiveOpen && (
-                <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', marginTop: '1rem' }}>
-                  {archivedReqs.map(renderCard)}
+                <div style={{ marginTop: '1rem' }}>
+                  {/* Search + Group toggle row */}
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <div style={{ flex: 1, minWidth: '180px', position: 'relative' }}>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Search by name or book..."
+                        value={archiveSearch}
+                        onChange={e => setArchiveSearch(e.target.value)}
+                        style={{ paddingLeft: '36px', minHeight: '40px', fontSize: '0.85rem' }}
+                      />
+                      <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-dim)', fontSize: '0.9rem', pointerEvents: 'none' }}>🔍</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setGroupByPerson(!groupByPerson)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: 'var(--radius-full)',
+                        border: groupByPerson ? '1px solid var(--rose-gold)' : '1px solid var(--brown-500)',
+                        background: groupByPerson ? 'rgba(201, 149, 108, 0.12)' : 'transparent',
+                        color: groupByPerson ? 'var(--rose-gold)' : 'var(--text-dim)',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        minHeight: '40px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      👤 Group by Person
+                    </button>
+                  </div>
+
+                  {/* Filter tabs */}
+                  <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                    {[
+                      { key: 'all', label: 'All', count: archivedReqs.length, color: 'var(--text-muted)' },
+                      { key: 'approved', label: 'Active', count: approvedReqs.length, color: 'var(--green)' },
+                      { key: 'returned', label: 'Returned', count: returnedReqs.length, color: 'var(--rose-gold)' },
+                      { key: 'rejected', label: 'Rejected', count: rejectedReqs.length, color: 'var(--red)' },
+                    ].map(tab => (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setArchiveFilter(tab.key)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: 'var(--radius-full)',
+                          border: archiveFilter === tab.key ? `1px solid ${tab.color}` : '1px solid var(--brown-500)',
+                          background: archiveFilter === tab.key ? `${tab.color}15` : 'transparent',
+                          color: archiveFilter === tab.key ? tab.color : 'var(--text-dim)',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          minHeight: '36px',
+                        }}
+                      >
+                        {tab.label} ({tab.count})
+                      </button>
+                    ))}
+                  </div>
+
+                  {filteredArchived.length === 0 ? (
+                    <p style={{ color: 'var(--text-dim)', textAlign: 'center', padding: '1.5rem 0' }}>
+                      {archiveSearch ? `No results for "${archiveSearch}"` : `No ${archiveFilter} requests.`}
+                    </p>
+                  ) : groupByPerson ? (
+                    /* Grouped by person view */
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                      {groupedByPerson.map(([personName, personReqs]) => (
+                        <div key={personName} style={{
+                          border: '1px solid rgba(201, 149, 108, 0.12)',
+                          borderRadius: 'var(--radius-lg)',
+                          overflow: 'hidden',
+                        }}>
+                          {/* Person header */}
+                          <div style={{
+                            padding: '14px 18px',
+                            background: 'rgba(201, 149, 108, 0.06)',
+                            borderBottom: '1px solid rgba(201, 149, 108, 0.1)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <div style={{
+                                width: '34px', height: '34px', borderRadius: '50%',
+                                background: 'linear-gradient(135deg, var(--rose-gold), var(--rose-gold-dark))',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: 'var(--brown-900)', fontWeight: 800, fontSize: '0.85rem',
+                              }}>
+                                {personName.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: '0.95rem' }}>{personName}</div>
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                                  {personReqs.length} request{personReqs.length !== 1 ? 's' : ''}
+                                  {personReqs[0]?.phone && (
+                                    <> · <a href={`tel:${personReqs[0].phone}`} style={{ color: 'var(--rose-gold)', textDecoration: 'none' }}>{personReqs[0].phone}</a></>  
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {/* Person's requests */}
+                          <div style={{ padding: '8px' }}>
+                            {personReqs.map(req => (
+                              <div key={req.id} style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius)',
+                                transition: 'background 0.15s',
+                              }}>
+                                {req.books?.cover_url && (
+                                  <img src={req.books.cover_url} alt="" style={{ width: '36px', height: '54px', objectFit: 'cover', borderRadius: '4px', flexShrink: 0 }} />
+                                )}
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {req.books?.title || 'Unknown'}
+                                  </div>
+                                  <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                                    {new Date(req.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                    {req.status === 'approved' && req.due_date && (
+                                      <span style={{ color: new Date(req.due_date) < new Date() ? 'var(--red)' : 'var(--text-muted)' }}>
+                                        {' '}· Due {new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                                <div>{getStatusBadge(req.status)}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    /* Normal grid view */
+                    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+                      {filteredArchived.map(renderCard)}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
