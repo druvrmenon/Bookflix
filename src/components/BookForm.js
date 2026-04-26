@@ -2,7 +2,7 @@
 // Supports: front cover + back cover upload, image crop, multi-genre, description
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { GENRES, LANGUAGES } from '@/lib/constants'
@@ -56,6 +56,110 @@ export default function BookForm({ book = null }) {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // ISBN Scanner states
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const [scanStatus, setScanStatus] = useState('')
+  const scannerRef = useRef(null)
+  const scannerContainerId = 'isbn-scanner-container'
+
+  // Start barcode scanner
+  const startScanner = async () => {
+    setScannerOpen(true)
+    setScanStatus('Starting camera...')
+    
+    // Dynamic import to avoid SSR issues
+    const { Html5Qrcode } = await import('html5-qrcode')
+    
+    // Wait for DOM element to mount
+    await new Promise(r => setTimeout(r, 300))
+    
+    const scanner = new Html5Qrcode(scannerContainerId)
+    scannerRef.current = scanner
+    
+    try {
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 280, height: 150 } },
+        async (decodedText) => {
+          // Got barcode
+          setScanStatus(`Found ISBN: ${decodedText}. Fetching book info...`)
+          await scanner.stop()
+          scannerRef.current = null
+          await fetchBookByISBN(decodedText)
+        },
+        () => {} // ignore scan failures
+      )
+      setScanStatus('Point camera at barcode')
+    } catch (err) {
+      console.error('Scanner error:', err)
+      setScanStatus('Camera access denied or not available')
+    }
+  }
+
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try { await scannerRef.current.stop() } catch (e) {}
+      scannerRef.current = null
+    }
+    setScannerOpen(false)
+    setScanStatus('')
+  }
+
+  // Fetch book data from Open Library by ISBN
+  const fetchBookByISBN = async (isbn) => {
+    try {
+      const cleanISBN = isbn.replace(/[^0-9X]/gi, '')
+      const res = await fetch(`https://openlibrary.org/isbn/${cleanISBN}.json`)
+      if (!res.ok) throw new Error('Book not found')
+      const bookData = await res.json()
+
+      // Set title
+      if (bookData.title) setTitle(bookData.title)
+
+      // Set description
+      if (bookData.description) {
+        const desc = typeof bookData.description === 'string' ? bookData.description : bookData.description.value
+        if (desc) setDescription(desc)
+      }
+
+      // Fetch author name
+      if (bookData.authors && bookData.authors.length > 0) {
+        const authorKey = bookData.authors[0].key
+        const authorRes = await fetch(`https://openlibrary.org${authorKey}.json`)
+        if (authorRes.ok) {
+          const authorData = await authorRes.json()
+          if (authorData.name) setAuthor(authorData.name)
+        }
+      }
+
+      // Set cover from ISBN
+      const coverUrl = `https://covers.openlibrary.org/b/isbn/${cleanISBN}-L.jpg`
+      setCoverPreview(coverUrl)
+      setCoverFile(null)
+      setCoverIsExternal(true)
+
+      // Try to match genres from subjects
+      if (bookData.subjects) {
+        const matchedGenres = GENRES.filter(g => 
+          bookData.subjects.some(s => s.toLowerCase().includes(g.toLowerCase()))
+        )
+        if (matchedGenres.length > 0) setGenre(matchedGenres)
+      }
+
+      setScannerOpen(false)
+      setScanStatus('')
+    } catch (err) {
+      console.error('ISBN lookup failed:', err)
+      setScanStatus(`Lookup failed: ${err.message}. Try entering manually.`)
+      setTimeout(() => { setScannerOpen(false); setScanStatus('') }, 2500)
+    }
+  }
+
+  // Cleanup scanner on unmount
+  useEffect(() => {
+    return () => { if (scannerRef.current) { try { scannerRef.current.stop() } catch(e) {} } }
+  }, [])
 
   const searchBookCovers = async () => {
     if (!searchQuery.trim()) return
@@ -215,6 +319,39 @@ export default function BookForm({ book = null }) {
     <>
       <form onSubmit={handleSubmit} className="book-form">
         {error && <div className="auth-error">{error}</div>}
+
+        {/* ISBN Scanner Button */}
+        {!isEditing && (
+          <button type="button" onClick={startScanner}
+            style={{
+              width: '100%',
+              padding: '14px',
+              marginBottom: '8px',
+              background: 'linear-gradient(135deg, rgba(201, 149, 108, 0.15), rgba(201, 149, 108, 0.05))',
+              border: '1px dashed rgba(201, 149, 108, 0.4)',
+              borderRadius: 'var(--radius-lg)',
+              color: 'var(--rose-gold)',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <line x1="6" y1="8" x2="6" y2="16"/>
+              <line x1="9" y1="8" x2="9" y2="16"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="16" y1="8" x2="16" y2="16"/>
+              <line x1="19" y1="8" x2="19" y2="16"/>
+            </svg>
+            📷 Scan ISBN Barcode
+          </button>
+        )}
 
         {/* Title */}
         <div className="form-group">
@@ -404,7 +541,29 @@ export default function BookForm({ book = null }) {
           </div>
         </div>
       )}
+      {/* ISBN Scanner Modal */}
+      {scannerOpen && (
+        <div className="crop-modal" onClick={stopScanner}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: 'var(--brown-800)',
+            border: '1px solid rgba(201, 149, 108, 0.15)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '20px',
+            width: 'calc(100vw - 32px)',
+            maxWidth: '400px',
+            boxShadow: 'var(--shadow-lg)',
+          }}>
+            <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Scan ISBN Barcode</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>
+              {scanStatus || 'Point camera at the barcode on the back of the book.'}
+            </p>
+            <div id={scannerContainerId} style={{ width: '100%', borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '16px' }} />
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={stopScanner}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
-
