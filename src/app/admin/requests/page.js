@@ -45,6 +45,23 @@ export default function AdminRentRequestsPage() {
         .eq('id', id)
 
       if (updateErr) throw updateErr
+      
+      // Update book availability if approved or returned
+      const req = requests.find(r => r.id === id)
+      if (req && req.book_id) {
+        if (newStatus === 'approved') {
+          await supabase.from('books').update({ 
+            available: false, 
+            available_date: extra.due_date || null 
+          }).eq('id', req.book_id)
+        } else if (newStatus === 'returned') {
+          await supabase.from('books').update({ 
+            available: true, 
+            available_date: null 
+          }).eq('id', req.book_id)
+        }
+      }
+
       setRequests(requests.map(r => r.id === id ? { ...r, status: newStatus, ...extra } : r))
     } catch (err) {
       console.error(err)

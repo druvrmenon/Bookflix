@@ -37,22 +37,38 @@ export default function CatalogPage() {
       // Check for unreviewed returned books
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
+        // Limit to checking only the 5 most recent returns to fix data overfetching
         const { data: rentData } = await supabase
           .from('rent_requests')
           .select('book_id, books (id, title)')
           .eq('user_id', user.id)
           .eq('status', 'returned')
+          .order('created_at', { ascending: false })
+          .limit(5)
           
         if (rentData && rentData.length > 0) {
+          const bookIdsToCheck = rentData.map(r => r.book_id)
+          
+          // Only fetch reviews for these specific 5 books
           const { data: reviewData } = await supabase
             .from('book_reviews')
             .select('book_id')
             .eq('user_id', user.id)
+            .in('book_id', bookIdsToCheck)
             
           const reviewedBookIds = reviewData?.map(r => r.book_id) || []
-          const unreviewedRentals = rentData.filter(r => !reviewedBookIds.includes(r.book_id))
           
-          // If they have unreviewed books, pop up the first one
+          // Check local storage for dismissed/skipped reviews to fix the "infinite nag"
+          let skippedBookIds = []
+          try {
+            skippedBookIds = JSON.parse(localStorage.getItem('skipped_reviews') || '[]')
+          } catch (e) {}
+
+          const unreviewedRentals = rentData.filter(r => 
+            !reviewedBookIds.includes(r.book_id) && !skippedBookIds.includes(r.book_id)
+          )
+          
+          // If they have unreviewed books that they haven't skipped, pop up the first one
           if (unreviewedRentals.length > 0 && unreviewedRentals[0].books) {
             setAutoReviewModalBook(unreviewedRentals[0].books)
           }
@@ -126,6 +142,22 @@ export default function CatalogPage() {
     } finally {
       setSubmittingReview(false)
     }
+  }
+
+  const handleSkipReview = () => {
+    if (!autoReviewModalBook) return
+    
+    try {
+      const skippedBookIds = JSON.parse(localStorage.getItem('skipped_reviews') || '[]')
+      if (!skippedBookIds.includes(autoReviewModalBook.id)) {
+        skippedBookIds.push(autoReviewModalBook.id)
+        localStorage.setItem('skipped_reviews', JSON.stringify(skippedBookIds))
+      }
+    } catch (e) {
+      console.error('Failed to save skipped review to local storage', e)
+    }
+    
+    setAutoReviewModalBook(null)
   }
 
   if (loading) return <BookLoading text="Loading catalog..." />
@@ -227,7 +259,7 @@ export default function CatalogPage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
-                  onClick={() => setAutoReviewModalBook(null)}>Skip for now</button>
+                  onClick={handleSkipReview}>Skip for now</button>
                 <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={submittingReview}>
                   {submittingReview ? 'Submitting...' : 'Submit Review'}
                 </button>
