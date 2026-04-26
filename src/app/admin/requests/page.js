@@ -129,20 +129,20 @@ export default function AdminRentRequestsPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: '6px', padding: '12px 16px', borderTop: '1px solid rgba(201, 149, 108, 0.1)', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '8px', padding: '12px 16px', borderTop: '1px solid rgba(201, 149, 108, 0.1)', flexWrap: 'wrap' }}>
         {req.status === 'pending' && (
           <>
             <button onClick={() => handleApprove(req.id)} className="btn btn-sm"
-              style={{ flex: 1, backgroundColor: 'rgba(74, 222, 128, 0.15)', color: 'var(--green)', border: '1px solid rgba(74, 222, 128, 0.3)' }}>
+              style={{ flex: 1, minHeight: '44px', backgroundColor: 'rgba(74, 222, 128, 0.15)', color: 'var(--green)', border: '1px solid rgba(74, 222, 128, 0.3)' }}>
               Approve
             </button>
-            <button onClick={() => updateStatus(req.id, 'rejected')} className="btn btn-sm btn-danger" style={{ flex: 1 }}>
+            <button onClick={() => updateStatus(req.id, 'rejected')} className="btn btn-sm btn-danger" style={{ flex: 1, minHeight: '44px' }}>
               Reject
             </button>
           </>
         )}
         {req.status === 'approved' && (
-          <button onClick={() => updateStatus(req.id, 'returned')} className="btn btn-sm btn-secondary" style={{ flex: 1 }}>
+          <button onClick={() => updateStatus(req.id, 'returned')} className="btn btn-sm btn-secondary" style={{ flex: 1, minHeight: '44px' }}>
             Mark Returned
           </button>
         )}
@@ -180,7 +180,7 @@ export default function AdminRentRequestsPage() {
         <>
           {/* Pending requests */}
           {pendingReqs.length > 0 ? (
-            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+            <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
               {pendingReqs.map(renderCard)}
             </div>
           ) : (
@@ -216,7 +216,7 @@ export default function AdminRentRequestsPage() {
               </button>
 
               {archiveOpen && (
-                <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', marginTop: '1rem' }}>
+                <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', marginTop: '1rem' }}>
                   {archivedReqs.map(renderCard)}
                 </div>
               )}

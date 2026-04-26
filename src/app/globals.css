@@ -1460,3 +1460,160 @@ h4 { font-size: 1.1rem; }
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ============================================
+   Mobile Optimizations
+   ============================================ */
+
+/* Safe area insets for notched phones (iPhone X+) */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .navbar {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .site-footer {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  }
+  .mobile-menu {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Small screens (<=480px) */
+@media (max-width: 480px) {
+  /* Tighter container padding */
+  .container {
+    padding: 0 12px;
+  }
+  
+  /* Smaller page titles */
+  .page-title {
+    font-size: 1.5rem;
+  }
+  .page-subtitle {
+    font-size: 0.88rem;
+  }
+
+  /* Book grid — 2 columns minimum */
+  .book-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* Book card text smaller */
+  .book-card-title {
+    font-size: 0.85rem;
+  }
+  .book-card-author {
+    font-size: 0.75rem;
+  }
+  .book-card-meta .badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+
+  /* Book detail — full width cover */
+  .book-detail {
+    gap: 20px;
+  }
+  .book-detail-cover {
+    max-width: 220px;
+    margin: 0 auto;
+  }
+  .book-detail-info h1 {
+    font-size: 1.4rem;
+  }
+
+  /* Stats cards — 2 col on tiny screens */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .stat-card {
+    padding: 12px 14px;
+  }
+  .stat-card-value {
+    font-size: 1.4rem;
+  }
+
+  /* Buttons always fill width on small screens */
+  .btn {
+    font-size: 0.88rem;
+    padding: 10px 18px;
+  }
+
+  /* Search bar full width */
+  .search-wrapper {
+    max-width: 100%;
+  }
+
+  /* Filter chips scroll area */
+  .filter-bar {
+    margin: 0 -12px;
+    padding: 4px 12px;
+  }
+
+  /* Admin cards */
+  .admin-card {
+    padding: 14px;
+  }
+  .admin-card-title {
+    font-size: 1rem;
+  }
+
+  /* Profile card */
+  .profile-card {
+    padding: 20px;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Form inputs bigger touch target */
+  .form-input, .form-select, .form-textarea {
+    min-height: 46px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  /* Modals (crop-modal) — full width on tiny screens */
+  .crop-modal > div {
+    width: calc(100vw - 24px) !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+/* Prevent iOS zoom on input focus */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="date"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Remove hover effects on touch devices — use active instead */
+  .book-card:hover .book-card-cover img {
+    transform: none;
+  }
+  .book-card:active .book-card-cover img {
+    transform: scale(0.98);
+  }
+  
+  /* Bigger touch gaps */
+  .navbar-link {
+    padding: 12px 16px;
+  }
+  
+  /* Better tap feedback */
+  .btn:active,
+  .filter-chip:active,
+  .card:active {
+    transform: scale(0.97);
+    transition: transform 0.1s;
+  }
+}
