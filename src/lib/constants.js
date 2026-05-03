@@ -14,6 +14,9 @@ export const GENRES = [
   'Academic',    // Textbooks, educational
   'Teen',
   'Mythology'
+  'Manga'
+  'Mystery'
+  'Autobiography'
 ]
 
 // Available book languages — used in admin BookForm and customer FilterBar
