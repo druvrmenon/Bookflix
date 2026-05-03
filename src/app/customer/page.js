@@ -14,7 +14,7 @@ export default function CatalogPage() {
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('')
   const [language, setLanguage] = useState('')
-  const [sortBy, setSortBy] = useState('newest') // Sort option
+  const [sortBy, setSortBy] = useState('title-az') // Sort option — alphabetical default
   const supabase = createClient()
 
   // Auto-review modal state
