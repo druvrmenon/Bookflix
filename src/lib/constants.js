@@ -13,9 +13,9 @@ export const GENRES = [
   'Biography',   // Life stories
   'Academic',    // Textbooks, educational
   'Teen',
-  'Mythology'
-  'Manga'
-  'Mystery'
+  'Mythology',
+  'Manga',
+  'Mystery',
   'Autobiography'
 ]
 
