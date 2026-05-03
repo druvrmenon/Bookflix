@@ -7,6 +7,7 @@ import BookCard from '@/components/BookCard'
 import SearchBar from '@/components/SearchBar'
 import FilterBar from '@/components/FilterBar'
 import BookLoading from '@/components/BookLoading'
+import Portal from '@/components/Portal'
 
 export default function CatalogPage() {
   const [books, setBooks] = useState([])
@@ -217,6 +218,7 @@ export default function CatalogPage() {
 
       {/* Auto-Review Modal */}
       {autoReviewModalBook && (
+        <Portal>
         <div className="crop-modal" onClick={() => setAutoReviewModalBook(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             background: 'var(--brown-800)',
@@ -267,6 +269,7 @@ export default function CatalogPage() {
             </form>
           </div>
         </div>
+        </Portal>
       )}
     </div>
   )
