@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import BookLoading from '@/components/BookLoading'
+import Portal from '@/components/Portal'
 
 export default function BookDetailPage() {
   const { id } = useParams()
@@ -478,6 +479,7 @@ export default function BookDetailPage() {
 
       {/* Rent request modal */}
       {rentModal && (
+        <Portal>
         <div className="crop-modal" onClick={() => setRentModal(false)}>
           <div onClick={e => e.stopPropagation()} style={{
             background: 'var(--brown-800)',
@@ -521,6 +523,7 @@ export default function BookDetailPage() {
             </form>
           </div>
         </div>
+        </Portal>
       )}
     </div>
   )

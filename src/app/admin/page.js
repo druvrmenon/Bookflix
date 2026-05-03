@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Modal from '@/components/Modal'
 import BookLoading from '@/components/BookLoading'
+import Portal from '@/components/Portal'
 
 export default function AdminDashboard() {
   const [books, setBooks] = useState([])
@@ -262,6 +263,7 @@ export default function AdminDashboard() {
 
       {/* Date picker modal */}
       {dateModal && (
+        <Portal>
         <div className="date-picker-popup" onClick={() => setDateModal(null)}>
           <div className="date-picker-card" onClick={e => e.stopPropagation()}>
             <h3>Set Available Date</h3>
@@ -279,6 +281,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+        </Portal>
       )}
     </div>
   )

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import Portal from '@/components/Portal'
 
 export default function CustomerRentalsPage() {
   const [requests, setRequests] = useState([])
@@ -166,6 +167,7 @@ export default function CustomerRentalsPage() {
 
       {/* Review Modal */}
       {reviewModalBook && (
+        <Portal>
         <div className="crop-modal" onClick={() => setReviewModalBook(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             background: 'var(--brown-800)',
@@ -216,6 +218,7 @@ export default function CustomerRentalsPage() {
             </form>
           </div>
         </div>
+        </Portal>
       )}
     </div>
   )

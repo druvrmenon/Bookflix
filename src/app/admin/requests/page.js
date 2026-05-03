@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Portal from '@/components/Portal'
 
 export default function AdminRentRequestsPage() {
   const [requests, setRequests] = useState([])
@@ -407,6 +408,7 @@ export default function AdminRentRequestsPage() {
 
       {/* Approve with due date modal */}
       {approveModal && (
+        <Portal>
         <div className="crop-modal" onClick={() => setApproveModal(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             background: 'var(--brown-800)',
@@ -440,6 +442,7 @@ export default function AdminRentRequestsPage() {
             </div>
           </div>
         </div>
+        </Portal>
       )}
     </div>
   )
