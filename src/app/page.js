@@ -33,12 +33,12 @@ export default async function Home() {
   return (
     <div className="hero">
       {/* Category badge */}
-      <div className="hero-badge">Book Rental Platform</div>
+      <div className="hero-badge">BOOKFLIX</div>
       {/* Main heading with gradient text */}
       <h1>Your Next Great Read Awaits</h1>
       {/* Subtitle description */}
       <p className="hero-subtitle">
-        Discover and rent from our curated collection of books.
+        Discover and rent from OUR curated collection of books.
         Fiction, non-fiction, Malayalam and English — all in one place.
       </p>
       {/* Call-to-action buttons */}
