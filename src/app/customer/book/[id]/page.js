@@ -48,7 +48,7 @@ export default function BookDetailPage() {
         .select('*, profiles(full_name)')
         .eq('book_id', id)
         .order('created_at', { ascending: false })
-      
+
       if (reviewsData) {
         setReviews(reviewsData)
         if (user) {
@@ -63,7 +63,7 @@ export default function BookDetailPage() {
             .eq('book_id', id)
             .eq('status', 'returned')
             .limit(1)
-            
+
           if (rentData && rentData.length > 0) {
             setCanReview(true)
           }
@@ -151,7 +151,7 @@ export default function BookDetailPage() {
         })
         .select('*, profiles(full_name)')
         .single()
-      
+
       if (error) throw error
 
       setReviews([data, ...reviews])
@@ -196,15 +196,15 @@ export default function BookDetailPage() {
         const coverHeight = 1050
         const coverX = (1080 - coverWidth) / 2
         const coverY = 290 // Moved up slightly
-        
+
         // Add drop shadow
         ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
         ctx.shadowBlur = 50
         ctx.shadowOffsetX = 0
         ctx.shadowOffsetY = 20
-        
+
         ctx.drawImage(coverImg, coverX, coverY, coverWidth, coverHeight)
-        
+
         // Reset shadow
         ctx.shadowColor = 'transparent'
       }
@@ -282,9 +282,9 @@ export default function BookDetailPage() {
         <div>
           <div className="book-detail-cover" style={{ position: 'relative' }}>
             {currentCover ? (
-              <Image 
-                src={currentCover} 
-                alt={showBack ? 'Back cover' : book.title} 
+              <Image
+                src={currentCover}
+                alt={showBack ? 'Back cover' : book.title}
                 fill
                 sizes="(max-width: 640px) 100vw, 300px"
                 style={{ objectFit: 'cover' }}
@@ -321,7 +321,7 @@ export default function BookDetailPage() {
         <div className="book-detail-info">
           <h1>{book.title}</h1>
           <div className="book-detail-author">by {book.author}</div>
-          
+
           {/* Average Rating */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--text-muted)' }}>
             <span style={{ color: 'var(--yellow)', fontSize: '1.2rem' }}>★</span>
@@ -388,16 +388,16 @@ export default function BookDetailPage() {
 
             {/* Share to IG Story button */}
             <button onClick={handleShareStory} className="btn" disabled={sharingThisShit}
-              style={{ 
-                width: '100%', 
-                maxWidth: '300px', 
-                background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', 
-                color: 'white', 
-                border: 'none', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: '8px' 
+              style={{
+                width: '100%',
+                maxWidth: '300px',
+                background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+                color: 'white',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}>
               {sharingThisShit ? <span className="spinner"></span> : (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
@@ -411,7 +411,7 @@ export default function BookDetailPage() {
       {/* Reviews Section */}
       <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '24px' }}>Reviews</h2>
-        
+
         {/* Write a review form */}
         {!userReview ? (
           canReview ? (
@@ -422,8 +422,8 @@ export default function BookDetailPage() {
                   <label className="form-label" style={{ marginBottom: '8px' }}>Rating</label>
                   <div style={{ display: 'flex', gap: '8px', fontSize: '1.5rem' }}>
                     {[1, 2, 3, 4, 5].map(star => (
-                      <span 
-                        key={star} 
+                      <span
+                        key={star}
                         onClick={() => setReviewRating(star)}
                         style={{ cursor: 'pointer', color: star <= reviewRating ? 'var(--yellow)' : 'var(--border-color)' }}
                       >
@@ -434,9 +434,9 @@ export default function BookDetailPage() {
                 </div>
                 <div className="form-group">
                   <label className="form-label">Review (optional)</label>
-                  <textarea 
-                    className="form-input" 
-                    rows="3" 
+                  <textarea
+                    className="form-input"
+                    rows="3"
                     placeholder="What did you think of this book?"
                     value={reviewText}
                     onChange={e => setReviewText(e.target.value)}
@@ -497,66 +497,66 @@ export default function BookDetailPage() {
       {/* Rent request modal */}
       {rentModal && (
         <Portal>
-        <div className="crop-modal" onClick={() => setRentModal(false)}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: 'var(--brown-800)',
-            border: '1px solid rgba(201, 149, 108, 0.15)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '24px',
-            width: 'calc(100vw - 32px)',
-            maxWidth: '400px',
-            boxShadow: 'var(--shadow-lg)',
-          }}>
-            <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Request to Rent</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Enter your details so the owner can reach you.
-            </p>
-            <form onSubmit={submitRentRequest} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" htmlFor="rent-name">Your Name *</label>
-                <input id="rent-name" className="form-input" type="text"
-                  value={contactName} onChange={e => setContactName(e.target.value)}
-                  placeholder="Full name" required />
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" htmlFor="rent-phone">Phone Number *</label>
-                <input id="rent-phone" className="form-input" type="tel"
-                  value={phone} onChange={e => setPhone(e.target.value)}
-                  placeholder="e.g. 9876543210" required />
-              </div>
-              <div className="form-group" style={{ margin: 0 }}>
-                <label className="form-label" htmlFor="rent-addr">Address</label>
-                <textarea id="rent-addr" className="form-input" rows={2}
-                  value={address} onChange={e => setAddress(e.target.value)}
-                  placeholder="Your address (optional)" style={{ resize: 'vertical' }} />
-              </div>
+          <div className="crop-modal" onClick={() => setRentModal(false)}>
+            <div onClick={e => e.stopPropagation()} style={{
+              background: 'var(--brown-800)',
+              border: '1px solid rgba(201, 149, 108, 0.15)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '24px',
+              width: 'calc(100vw - 32px)',
+              maxWidth: '400px',
+              boxShadow: 'var(--shadow-lg)',
+            }}>
+              <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Request to Rent</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+                Enter your details so the owner can reach you.
+              </p>
+              <form onSubmit={submitRentRequest} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" htmlFor="rent-name">Your Name *</label>
+                  <input id="rent-name" className="form-input" type="text"
+                    value={contactName} onChange={e => setContactName(e.target.value)}
+                    placeholder="Full name" required />
+                </div>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" htmlFor="rent-phone">Phone Number *</label>
+                  <input id="rent-phone" className="form-input" type="tel"
+                    value={phone} onChange={e => setPhone(e.target.value)}
+                    placeholder="e.g. 9876543210" required />
+                </div>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" htmlFor="rent-addr">Full Address *</label>
+                  <textarea id="rent-addr" className="form-input" rows={2}
+                    value={address} onChange={e => setAddress(e.target.value)}
+                    placeholder="Full address" required style={{ resize: 'vertical' }} />
+                </div>
 
-              {/* Policy Checkboxes */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
-                <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={agreeFees} onChange={e => setAgreeFees(e.target.checked)} required />
-                  <span>I agree to pay ₹35/week and a 2-week advance payment.</span>
-                </label>
-                <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={agreeDamage} onChange={e => setAgreeDamage(e.target.checked)} required />
-                  <span>I agree to pay ₹600 if the book is damaged or lost.</span>
-                </label>
-                <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} required />
-                  <span>I agree to the <Link href="/terms" target="_blank" style={{ color: 'var(--rose-gold)', textDecoration: 'underline' }}>Terms and Conditions</Link>.</span>
-                </label>
-              </div>
+                {/* Policy Checkboxes */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                  <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={agreeFees} onChange={e => setAgreeFees(e.target.checked)} required />
+                    <span>I agree to pay ₹35/week and a 2-week advance payment of ₹70.</span>
+                  </label>
+                  <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={agreeDamage} onChange={e => setAgreeDamage(e.target.checked)} required />
+                    <span>I agree to pay ₹600 if the book is damaged or lost.</span>
+                  </label>
+                  <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} required />
+                    <span>I agree to the <Link href="/terms" target="_blank" style={{ color: 'var(--rose-gold)', textDecoration: 'underline' }}>Terms and Conditions</Link>.</span>
+                  </label>
+                </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-                <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
-                  onClick={() => setRentModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={renting || !agreeFees || !agreeDamage || !agreeTerms}>
-                  {renting ? '...' : 'Send Request'}
-                </button>
-              </div>
-            </form>
+                <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                  <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
+                    onClick={() => setRentModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={renting || !agreeFees || !agreeDamage || !agreeTerms}>
+                    {renting ? '...' : 'Send Request'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
         </Portal>
       )}
     </div>
