@@ -42,7 +42,9 @@ export default async function Home() {
     <div className="landing-page fade-in">
       {/* Hero Section */}
       <div className="hero" style={{ minHeight: 'auto', padding: '80px 16px 60px' }}>
-        <div className="hero-badge">BOOKFLIX</div>
+        <div style={{ marginBottom: '24px' }}>
+          <img src="/logo.png" alt="BookFlix Logo" style={{ height: '80px', width: 'auto', margin: '0 auto' }} />
+        </div>
         <h1>Your Next Great Read Awaits</h1>
         <p className="hero-subtitle">
           Discover and rent from OUR curated collection of books.

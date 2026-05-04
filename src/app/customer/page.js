@@ -326,7 +326,9 @@ export default function CatalogPage() {
               boxShadow: 'var(--shadow-lg)',
               position: 'relative'
             }}>
-              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📚</div>
+              <div style={{ marginBottom: '20px' }}>
+                <img src="/logo.png" alt="BookFlix Logo" style={{ height: '60px', width: 'auto', margin: '0 auto' }} />
+              </div>
               <h2 style={{ color: 'var(--rose-gold)', marginBottom: '12px' }}>Welcome to BookFlix!</h2>
               <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '24px' }}>
                 Your journey through curated stories starts here. Browse the catalog, request your next read, and share your favorites on Instagram!
