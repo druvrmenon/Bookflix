@@ -21,6 +21,7 @@ export default function CatalogPage() {
   const [genre, setGenre] = useState('')
   const [language, setLanguage] = useState('')
   const [sortBy, setSortBy] = useState('title-az') // Sort option — alphabetical default
+  const [showWelcome, setShowWelcome] = useState(false)
   const supabase = createClient()
 
   // Auto-review modal state
@@ -28,6 +29,19 @@ export default function CatalogPage() {
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewText, setReviewText] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
+
+  // Check for first-time welcome
+  useEffect(() => {
+    const hasSeen = localStorage.getItem('has_seen_welcome_v2')
+    if (!hasSeen) {
+      setShowWelcome(true)
+    }
+  }, [])
+
+  const closeWelcome = () => {
+    localStorage.setItem('has_seen_welcome_v2', 'true')
+    setShowWelcome(false)
+  }
 
   // Reset page when filters change
   useEffect(() => {
@@ -294,6 +308,47 @@ export default function CatalogPage() {
             </form>
           </div>
         </div>
+        </Portal>
+      )}
+
+      {/* Welcome Pop-up */}
+      {showWelcome && (
+        <Portal>
+          <div className="crop-modal" onClick={closeWelcome}>
+            <div onClick={e => e.stopPropagation()} style={{
+              background: 'var(--brown-800)',
+              border: '1px solid var(--rose-gold)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '32px',
+              width: 'calc(100vw - 32px)',
+              maxWidth: '440px',
+              textAlign: 'center',
+              boxShadow: 'var(--shadow-lg)',
+              position: 'relative'
+            }}>
+              <div style={{ fontSize: '3rem', marginBottom: '16px' }}>📚</div>
+              <h2 style={{ color: 'var(--rose-gold)', marginBottom: '12px' }}>Welcome to BookFlix!</h2>
+              <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', marginBottom: '24px' }}>
+                Your journey through curated stories starts here. Browse the catalog, request your next read, and share your favorites on Instagram!
+              </p>
+              
+              <div style={{ 
+                background: 'rgba(201, 149, 108, 0.1)', 
+                padding: '16px', 
+                borderRadius: 'var(--radius-md)', 
+                marginBottom: '24px',
+                border: '1px dashed rgba(201, 149, 108, 0.3)'
+              }}>
+                <p style={{ fontSize: '0.85rem', margin: 0, color: 'var(--gray-100)' }}>
+                  <strong>Pro Tip:</strong> You can install this app on your phone for a faster experience! Look for "Add to Home Screen" in your browser menu.
+                </p>
+              </div>
+
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={closeWelcome}>
+                Let's Get Reading!
+              </button>
+            </div>
+          </div>
         </Portal>
       )}
     </div>
