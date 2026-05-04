@@ -4,6 +4,8 @@
 import { Outfit, Inter } from 'next/font/google' // Google font imports
 import Script from 'next/script' // Next.js script optimization component
 import './globals.css' // Global stylesheet with design system
+import PWARegistration from '@/components/PWARegistration'
+
 
 // Load Outfit font for headings — variable font for performance
 const outfit = Outfit({
@@ -57,6 +59,13 @@ export const metadata = {
     description: 'Browse, discover and rent books from our curated catalog.',
     images: ['/og-image.png'],
   },
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
+  themeColor: '#1a0a0a',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'BookFlix',
+  },
 }
 
 // Root layout component — renders on every page
@@ -69,6 +78,7 @@ export default function RootLayout({ children }) {
     // Apply font CSS variables to entire document
     <html lang="en" className={`${outfit.variable} ${inter.variable}`}>
       <body>
+        <PWARegistration />
         {/* Page content renders here */}
         {children}
 
