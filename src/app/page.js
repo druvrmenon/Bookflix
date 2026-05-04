@@ -5,6 +5,7 @@
 import Link from 'next/link' // Next.js optimized link
 import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
+import BookCard from '@/components/BookCard'
 
 export default async function Home() {
   // Create Supabase client with cookie-based session
@@ -29,26 +30,50 @@ export default async function Home() {
     }
   }
 
-  // User is NOT logged in — show hero landing page
+  // Fetch recent books for the public catalog preview
+  const { data: books } = await supabase
+    .from('books')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(10) // Show top 10 newest books
+
+  // User is NOT logged in — show hero landing page with catalog preview
   return (
-    <div className="hero">
-      {/* Category badge */}
-      <div className="hero-badge">BOOKFLIX</div>
-      {/* Main heading with gradient text */}
-      <h1>Your Next Great Read Awaits</h1>
-      {/* Subtitle description */}
-      <p className="hero-subtitle">
-        Discover and rent from OUR curated collection of books.
-        Fiction, non-fiction, Malayalam and English — all in one place.
-      </p>
-      {/* Call-to-action buttons */}
-      <div className="hero-cta">
-        <Link href="/customer" className="btn btn-primary">
-          Browse Catalog
-        </Link>
-        <Link href="/login" className="btn btn-secondary">
-          Sign In
-        </Link>
+    <div className="landing-page fade-in">
+      {/* Hero Section */}
+      <div className="hero" style={{ minHeight: 'auto', padding: '80px 16px 60px' }}>
+        <div className="hero-badge">BOOKFLIX</div>
+        <h1>Your Next Great Read Awaits</h1>
+        <p className="hero-subtitle">
+          Discover and rent from OUR curated collection of books.
+          Fiction, non-fiction, Malayalam and English — all in one place.
+        </p>
+        <div className="hero-cta">
+          <Link href="/signup" className="btn btn-primary">
+            Sign Up to Rent
+          </Link>
+          <Link href="/login" className="btn btn-secondary">
+            Sign In
+          </Link>
+        </div>
+      </div>
+
+      {/* Public Catalog Preview */}
+      <div className="container" style={{ padding: '0 16px 80px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="book-grid">
+          {books?.map((book) => (
+            <BookCard 
+              key={book.id} 
+              book={book} 
+            />
+          ))}
+        </div>
+        
+        <div style={{ textAlign: 'center', marginTop: '48px' }}>
+          <Link href="/browse" className="btn btn-primary" style={{ padding: '14px 32px', fontSize: '1.1rem' }}>
+            View Full Catalog & Sign Up to Rent →
+          </Link>
+        </div>
       </div>
     </div>
   )

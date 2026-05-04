@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import BookLoading from '@/components/BookLoading'
 import Portal from '@/components/Portal'
@@ -269,9 +270,15 @@ export default function BookDetailPage() {
       <div className="book-detail">
         {/* Cover section */}
         <div>
-          <div className="book-detail-cover">
+          <div className="book-detail-cover" style={{ position: 'relative' }}>
             {currentCover ? (
-              <img src={currentCover} alt={showBack ? 'Back cover' : book.title} />
+              <Image 
+                src={currentCover} 
+                alt={showBack ? 'Back cover' : book.title} 
+                fill
+                sizes="(max-width: 640px) 100vw, 300px"
+                style={{ objectFit: 'cover' }}
+              />
             ) : (
               <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

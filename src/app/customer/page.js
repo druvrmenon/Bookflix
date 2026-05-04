@@ -10,8 +10,13 @@ import BookLoading from '@/components/BookLoading'
 import Portal from '@/components/Portal'
 
 export default function CatalogPage() {
+  const PAGE_SIZE = 20
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [fetchingMore, setFetchingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(0)
+
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('')
   const [language, setLanguage] = useState('')
@@ -24,21 +29,63 @@ export default function CatalogPage() {
   const [reviewText, setReviewText] = useState('')
   const [submittingReview, setSubmittingReview] = useState(false)
 
-  // Fetch books on mount
+  // Reset page when filters change
   useEffect(() => {
-    const fetchData = async () => {
-      // Fetch all books
-      const { data: booksData } = await supabase
-        .from('books')
-        .select('*')
-        .order('created_at', { ascending: false })
+    setPage(0)
+    setHasMore(true)
+  }, [search, genre, language, sortBy])
 
-      if (booksData) setBooks(booksData)
-      
-      // Check for unreviewed returned books
+  // Fetch paginated books
+  useEffect(() => {
+    const fetchBooks = async () => {
+      if (page === 0) setLoading(true)
+      else setFetchingMore(true)
+
+      let query = supabase.from('books').select('*', { count: 'exact' })
+
+      if (search) {
+        query = query.or(`title.ilike.%${search}%,author.ilike.%${search}%`)
+      }
+      if (genre) {
+        query = query.contains('genre', [genre])
+      }
+      if (language) {
+        query = query.eq('language', language)
+      }
+
+      switch (sortBy) {
+        case 'title-az': query = query.order('title', { ascending: true }); break;
+        case 'title-za': query = query.order('title', { ascending: false }); break;
+        case 'author': query = query.order('author', { ascending: true }); break;
+        case 'available': query = query.order('available', { ascending: false }).order('created_at', { ascending: false }); break;
+        case 'newest': default: query = query.order('created_at', { ascending: false }); break;
+      }
+
+      const from = page * PAGE_SIZE
+      const to = from + PAGE_SIZE - 1
+      query = query.range(from, to)
+
+      const { data } = await query
+
+      if (data) {
+        if (page === 0) setBooks(data)
+        else setBooks(prev => [...prev, ...data])
+        
+        setHasMore(data.length === PAGE_SIZE)
+      }
+
+      setLoading(false)
+      setFetchingMore(false)
+    }
+
+    fetchBooks()
+  }, [page, search, genre, language, sortBy, supabase])
+
+  // Fetch unreviewed returned books on mount
+  useEffect(() => {
+    const fetchReviews = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // Limit to checking only the 5 most recent returns to fix data overfetching
         const { data: rentData } = await supabase
           .from('rent_requests')
           .select('book_id, books (id, title)')
@@ -49,8 +96,6 @@ export default function CatalogPage() {
           
         if (rentData && rentData.length > 0) {
           const bookIdsToCheck = rentData.map(r => r.book_id)
-          
-          // Only fetch reviews for these specific 5 books
           const { data: reviewData } = await supabase
             .from('book_reviews')
             .select('book_id')
@@ -59,7 +104,6 @@ export default function CatalogPage() {
             
           const reviewedBookIds = reviewData?.map(r => r.book_id) || []
           
-          // Check local storage for dismissed/skipped reviews to fix the "infinite nag"
           let skippedBookIds = []
           try {
             skippedBookIds = JSON.parse(localStorage.getItem('skipped_reviews') || '[]')
@@ -69,51 +113,14 @@ export default function CatalogPage() {
             !reviewedBookIds.includes(r.book_id) && !skippedBookIds.includes(r.book_id)
           )
           
-          // If they have unreviewed books that they haven't skipped, pop up the first one
           if (unreviewedRentals.length > 0 && unreviewedRentals[0].books) {
             setAutoReviewModalBook(unreviewedRentals[0].books)
           }
         }
       }
-
-      setLoading(false)
     }
-    fetchData()
-  }, [])
-
-  // Filter and sort books — recalculates when any filter/sort changes
-  const filtered = useMemo(() => {
-    let result = books.filter((book) => {
-      const matchSearch = search === '' ||
-        book.title.toLowerCase().includes(search.toLowerCase()) ||
-        book.author.toLowerCase().includes(search.toLowerCase())
-      const matchGenre = genre === '' || (Array.isArray(book.genre) ? book.genre.includes(genre) : book.genre === genre)
-      const matchLang = language === '' || book.language === language
-      return matchSearch && matchGenre && matchLang
-    })
-
-    // Sort
-    switch (sortBy) {
-      case 'title-az':
-        result.sort((a, b) => a.title.localeCompare(b.title))
-        break
-      case 'title-za':
-        result.sort((a, b) => b.title.localeCompare(a.title))
-        break
-      case 'author':
-        result.sort((a, b) => a.author.localeCompare(b.author))
-        break
-      case 'available':
-        result.sort((a, b) => (b.available ? 1 : 0) - (a.available ? 1 : 0))
-        break
-      case 'newest':
-      default:
-        // Already sorted by newest from query
-        break
-    }
-
-    return result
-  }, [books, search, genre, language, sortBy])
+    fetchReviews()
+  }, [supabase])
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault()
@@ -161,7 +168,7 @@ export default function CatalogPage() {
     setAutoReviewModalBook(null)
   }
 
-  if (loading) return <BookLoading text="Loading catalog..." />
+  if (loading && page === 0) return <BookLoading text="Loading catalog..." />
 
   return (
     <div className="fade-in">
@@ -194,7 +201,7 @@ export default function CatalogPage() {
       </div>
 
       {/* Book grid */}
-      {filtered.length === 0 ? (
+      {books.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
@@ -206,14 +213,28 @@ export default function CatalogPage() {
           </div>
         </div>
       ) : (
-        <div className="book-grid">
-          {filtered.map((book) => (
-            <BookCard
-              key={book.id}
-              book={book}
-            />
-          ))}
-        </div>
+        <>
+          <div className="book-grid">
+            {books.map((book) => (
+              <BookCard
+                key={book.id}
+                book={book}
+              />
+            ))}
+          </div>
+          
+          {hasMore && (
+            <div style={{ textAlign: 'center', marginTop: '32px' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setPage(p => p + 1)}
+                disabled={fetchingMore}
+              >
+                {fetchingMore ? 'Loading...' : 'Load More Books'}
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Auto-Review Modal */}

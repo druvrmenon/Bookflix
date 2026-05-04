@@ -3,6 +3,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 
 // Helper: check if book should show "NEW" badge
 // show_new_badge: null = auto (< 7 days), true = force on, false = force off
@@ -26,7 +27,13 @@ export default function BookCard({ book, basePath = '/customer/book' }) {
         {/* Cover image */}
         <div className="book-card-cover">
           {coverUrl ? (
-            <img src={coverUrl} alt={book.title} loading="lazy" />
+            <Image 
+              src={coverUrl} 
+              alt={book.title} 
+              fill
+              sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, 250px"
+              style={{ objectFit: 'cover' }}
+            />
           ) : (
             <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

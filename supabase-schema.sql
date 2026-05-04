@@ -215,3 +215,15 @@ CREATE POLICY "Admins can delete any review" ON public.book_reviews
 -- create the "book-covers" bucket and make it public
 -- manually set someone to admin in the db first
 -- ============================================
+
+-- ============================================
+-- Performance Indexes
+-- ============================================
+-- Enable trigram extension for text search indexes
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE INDEX IF NOT EXISTS idx_books_created_at ON public.books (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_books_available ON public.books (available);
+CREATE INDEX IF NOT EXISTS idx_books_title ON public.books USING gin (title gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_books_author ON public.books USING gin (author gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_rent_requests_user_status ON public.rent_requests (user_id, status);
