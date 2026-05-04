@@ -21,9 +21,10 @@ const inter = Inter({
 
 // SEO metadata — shown in search results and browser tabs
 export const metadata = {
-  title: 'BookFlix — Rent Your Next Great Read', // Page title
-  description: 'Browse, discover and rent books from our curated catalog. Fiction, non-fiction, Malayalam and English titles available.', // Search engine description
-  keywords: ['books', 'rental', 'bookflix', 'reading', 'library'], // SEO keywords
+  metadataBase: new URL('https://bookflix.in'),
+  title: 'BookFlix — Rent Your Next Great Read',
+  description: 'Browse, discover and rent books from our curated catalog. Fiction, non-fiction, Malayalam and English titles available.',
+  keywords: ['books', 'rental', 'bookflix', 'reading', 'library'],
   icons: {
     icon: [
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
@@ -32,6 +33,30 @@ export const metadata = {
     apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.json',
+  // Open Graph — WhatsApp, Instagram, Discord, Facebook link previews
+  openGraph: {
+    title: 'BookFlix — Rent Your Next Great Read',
+    description: 'Browse, discover and rent books from our curated catalog.',
+    url: 'https://bookflix.in',
+    siteName: 'BookFlix',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'BookFlix — Book Rental Platform',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  // Twitter/X card
+  twitter: {
+    card: 'summary_large_image',
+    title: 'BookFlix — Rent Your Next Great Read',
+    description: 'Browse, discover and rent books from our curated catalog.',
+    images: ['/og-image.png'],
+  },
 }
 
 // Root layout component — renders on every page
