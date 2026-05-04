@@ -9,8 +9,11 @@ export default function Footer() {
         <p className="footer-credit">
           Made with <span className="footer-heart">❤️</span> by Druv R Menon
         </p>
-        {/* Social links */}
-        <div className="footer-links">
+        {/* Footer links */}
+        <div className="footer-links" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <a href="/terms" className="footer-link" style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
+            Terms & Conditions
+          </a>
           {/* Instagram link */}
           <a
             href="https://instagram.com/bookflix.kochi"
