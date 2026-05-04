@@ -23,6 +23,9 @@ export default function BookDetailPage() {
   const [contactName, setContactName] = useState('')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
+  const [agreeFees, setAgreeFees] = useState(false)
+  const [agreeDamage, setAgreeDamage] = useState(false)
+  const [agreeTerms, setAgreeTerms] = useState(false)
 
   // Reviews
   const [reviews, setReviews] = useState([])
@@ -77,12 +80,19 @@ export default function BookDetailPage() {
     setContactName('')
     setPhone('')
     setAddress('')
+    setAgreeFees(false)
+    setAgreeDamage(false)
+    setAgreeTerms(false)
     setRentModal(true)
   }
 
   const submitRentRequest = async (e) => {
     e.preventDefault()
     if (!contactName.trim() || !phone.trim()) return
+    if (!agreeFees || !agreeDamage || !agreeTerms) {
+      alert('Please agree to all terms before requesting.')
+      return
+    }
 
     setRenting(true)
     setMessage('')
@@ -520,10 +530,27 @@ export default function BookDetailPage() {
                   value={address} onChange={e => setAddress(e.target.value)}
                   placeholder="Your address (optional)" style={{ resize: 'vertical' }} />
               </div>
+
+              {/* Policy Checkboxes */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={agreeFees} onChange={e => setAgreeFees(e.target.checked)} required />
+                  <span>I agree to pay ₹35/week and a 2-week advance payment.</span>
+                </label>
+                <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={agreeDamage} onChange={e => setAgreeDamage(e.target.checked)} required />
+                  <span>I agree to pay ₹600 if the book is damaged or lost.</span>
+                </label>
+                <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} required />
+                  <span>I agree to the <Link href="/terms" target="_blank" style={{ color: 'var(--rose-gold)', textDecoration: 'underline' }}>Terms and Conditions</Link>.</span>
+                </label>
+              </div>
+
               <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
                 <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
                   onClick={() => setRentModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={renting}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={renting || !agreeFees || !agreeDamage || !agreeTerms}>
                   {renting ? '...' : 'Send Request'}
                 </button>
               </div>
