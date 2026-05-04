@@ -8,8 +8,8 @@ import Footer from '@/components/Footer' // Site footer
 
 // SEO metadata for customer pages
 export const metadata = {
-  title: 'Catalog — BookFlix',
-  description: 'Browse and rent books from our curated catalog.',
+  title: 'Book Catalog — BookFlix',
+  description: 'Browse and rent books from our curated catalog. Fiction, non-fiction, Malayalam and English titles.',
 }
 
 export default async function CustomerLayout({ children }) {
