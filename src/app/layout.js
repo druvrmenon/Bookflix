@@ -5,6 +5,7 @@ import { Outfit, Inter } from 'next/font/google' // Google font imports
 import Script from 'next/script' // Next.js script optimization component
 import './globals.css' // Global stylesheet with design system
 import PWARegistration from '@/components/PWARegistration'
+import CookieConsent from '@/components/CookieConsent'
 
 
 // Load Outfit font for headings — variable font for performance
@@ -79,6 +80,7 @@ export default function RootLayout({ children }) {
     <html lang="en" className={`${outfit.variable} ${inter.variable}`}>
       <body>
         <PWARegistration />
+        <CookieConsent />
         {/* Page content renders here */}
         {children}
 
