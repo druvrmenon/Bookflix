@@ -7,6 +7,7 @@ import './globals.css' // Global stylesheet with design system
 import PWARegistration from '@/components/PWARegistration'
 import CookieConsent from '@/components/CookieConsent'
 import { Analytics } from '@vercel/analytics/next' // Vercel Web Analytics
+import PresenceTracker from '@/components/PresenceTracker'
 
 
 // Load Outfit font for headings — variable font for performance
@@ -82,6 +83,7 @@ export default function RootLayout({ children }) {
       <body>
         <PWARegistration />
         <CookieConsent />
+        <PresenceTracker />
         {/* Page content renders here */}
         {children}
         <Analytics />
