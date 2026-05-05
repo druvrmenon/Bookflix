@@ -20,12 +20,14 @@ export default async function Home() {
     // User is logged in — fetch their role from profiles table
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role') // Only fetch the role column (faster query)
+      .select('role, is_banned') // Fetch both role and ban status
       .eq('id', user.id) // Match by user ID
       .single() // Expect exactly one result
 
     // Redirect to role-appropriate dashboard
-    if (profile?.role === 'admin') {
+    if (profile?.is_banned) {
+      redirect('/banned')
+    } else if (profile?.role === 'admin') {
       redirect('/admin') // Admin goes to admin dashboard
     } else {
       redirect('/customer') // Customer goes to catalog

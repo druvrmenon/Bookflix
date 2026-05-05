@@ -32,6 +32,19 @@ export default function AdminUsersPage() {
     }
   }
 
+  // Toggle ban status
+  const toggleBan = async (user) => {
+    const newBanStatus = !user.is_banned
+    if (newBanStatus && !confirm(`Are you sure you want to BAN ${user.full_name || 'this user'}?`)) return
+    
+    const { error } = await supabase
+      .from('profiles').update({ is_banned: newBanStatus }).eq('id', user.id)
+
+    if (!error) {
+      setUsers(users.map(u => u.id === user.id ? { ...u, is_banned: newBanStatus } : u))
+    }
+  }
+
   // Filter users by search
   const filtered = useMemo(() => {
     if (!search) return users
@@ -77,12 +90,22 @@ export default function AdminUsersPage() {
                   </span>
                 </div>
               </div>
-              <button
-                className={`btn btn-sm ${user.role === 'admin' ? 'btn-danger' : 'btn-primary'}`}
-                onClick={() => toggleRole(user)}
-              >
-                {user.role === 'admin' ? 'Demote to Customer' : 'Promote to Admin'}
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  className={`btn btn-sm ${user.role === 'admin' ? 'btn-danger' : 'btn-primary'}`}
+                  onClick={() => toggleRole(user)}
+                  style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                >
+                  {user.role === 'admin' ? 'Demote' : 'Promote'}
+                </button>
+                <button
+                  className={`btn btn-sm ${user.is_banned ? 'btn-primary' : 'btn-danger'}`}
+                  onClick={() => toggleBan(user)}
+                  style={{ fontSize: '0.75rem', padding: '6px 12px', background: user.is_banned ? 'var(--green)' : 'var(--red)' }}
+                >
+                  {user.is_banned ? 'Unban' : 'Ban'}
+                </button>
+              </div>
             </div>
           </div>
         ))}
