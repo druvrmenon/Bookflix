@@ -160,6 +160,8 @@ CREATE TABLE IF NOT EXISTS public.rent_requests (
   due_date DATE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+-- IMPORTANT: Enable Realtime for this table in Supabase Dashboard
+-- ALTER PUBLICATION supabase_realtime ADD TABLE rent_requests;
 ALTER TABLE public.rent_requests ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can view own requests" ON public.rent_requests;

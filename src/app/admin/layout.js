@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import Navbar from '@/components/Navbar' // Shared navigation bar
 import Footer from '@/components/Footer' // Site footer
+import AdminNotificationListener from '@/components/AdminNotificationListener'
 
 // SEO metadata for admin pages
 export const metadata = {
@@ -38,6 +39,9 @@ export default async function AdminLayout({ children }) {
   return (
     // Flex column layout ensures footer sticks to bottom
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
+      {/* Real-time notification listener for admins */}
+      <AdminNotificationListener />
+      
       {/* Navbar with admin role */}
       <Navbar role="admin" />
       {/* Page content */}
