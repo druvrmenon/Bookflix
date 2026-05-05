@@ -7,6 +7,10 @@ import { NextResponse } from 'next/server' // Next.js response helper
 
 // Proxy function — runs on every matched request
 export async function proxy(request) {
+  // 1. IP Ban Check Setup
+  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  const isBannedPath = request.nextUrl.pathname.startsWith('/banned')
+
   // Read Supabase credentials
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -43,7 +47,36 @@ export async function proxy(request) {
   })
 
   // Refresh the session — this triggers cookie updates if token is stale
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // 2. Perform DB checks (IP Ban + User Ban)
+  if (!isBannedPath) {
+    // Check IP
+    if (ip !== 'unknown') {
+      const { data: bannedIp } = await supabase
+        .from('banned_ips')
+        .select('ip')
+        .eq('ip', ip)
+        .single()
+
+      if (bannedIp) {
+        return NextResponse.redirect(new URL('/banned', request.url))
+      }
+    }
+
+    // Check User Account Ban
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_banned')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.is_banned) {
+        return NextResponse.redirect(new URL('/banned', request.url))
+      }
+    }
+  }
 
   // Return response with refreshed session cookies
   return supabaseResponse
