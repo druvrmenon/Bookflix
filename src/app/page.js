@@ -48,14 +48,14 @@ export default async function Home() {
     <div className="landing-page fade-in">
       {/* Hero Section */}
       <div className="hero" style={{ minHeight: 'auto', padding: '80px 16px 60px' }}>
-        <div style={{ marginBottom: '24px', position: 'relative', height: '80px', display: 'flex', justifyContent: 'center' }}>
+        <div className="hero-logo-wrap" style={{ marginBottom: '24px', position: 'relative', display: 'flex', justifyContent: 'center' }}>
           <Image 
             src="/logo.png" 
             alt="BookFlix Logo" 
-            width={200} 
-            height={80} 
+            width={180} 
+            height={60} 
             priority
-            style={{ height: '80px', width: 'auto' }} 
+            className="hero-logo-img"
           />
         </div>
         <h1>BookFlix — Your Next Great Read Awaits</h1>

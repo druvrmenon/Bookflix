@@ -808,6 +808,18 @@ h4 { font-size: 1.1rem; }
   justify-content: center;
 }
 
+.hero-logo-img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .hero-logo-img {
+    height: 90px;
+  }
+}
+
 /* --- Auth Forms --- */
 .auth-page {
   display: flex;
@@ -883,16 +895,28 @@ h4 { font-size: 1.1rem; }
 }
 
 .auth-logo img {
-  height: 80px;
+  height: 60px; /* Reduced for mobile */
   width: auto;
   object-fit: contain;
 }
 
+@media (min-width: 768px) {
+  .auth-logo img {
+    height: 80px;
+  }
+}
+
 .navbar-logo-img {
-  height: 48px;
+  height: 32px; /* Reduced for mobile */
   width: auto;
   object-fit: contain;
   margin-right: -4px;
+}
+
+@media (min-width: 768px) {
+  .navbar-logo-img {
+    height: 48px;
+  }
 }
 
 /* --- Book Detail --- */
