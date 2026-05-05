@@ -228,3 +228,21 @@ CREATE INDEX IF NOT EXISTS idx_books_available ON public.books (available);
 CREATE INDEX IF NOT EXISTS idx_books_title ON public.books USING gin (title gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_books_author ON public.books USING gin (author gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_rent_requests_user_status ON public.rent_requests (user_id, status);
+
+-- ============================================
+-- IP Banning
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.banned_ips (
+  ip TEXT PRIMARY KEY,
+  reason TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.banned_ips ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Admins can manage banned IPs" ON public.banned_ips;
+CREATE POLICY "Admins can manage banned IPs" ON public.banned_ips
+  FOR ALL USING (public.is_admin());
+
+DROP POLICY IF EXISTS "Anyone can read banned IPs" ON public.banned_ips;
+CREATE POLICY "Anyone can read banned IPs" ON public.banned_ips
+  FOR SELECT USING (true);

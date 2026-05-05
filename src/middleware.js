@@ -8,6 +8,10 @@ export async function middleware(request) {
     },
   })
 
+  // 1. IP Ban Check
+  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  const isBannedPath = request.nextUrl.pathname.startsWith('/banned')
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -34,15 +38,32 @@ export async function middleware(request) {
   // This will refresh the session if it's expired
   const { data: { user } } = await supabase.auth.getUser()
 
-  if (user && !request.nextUrl.pathname.startsWith('/banned')) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('is_banned')
-      .eq('id', user.id)
-      .single()
+  // 2. Perform DB checks (IP Ban + User Ban)
+  if (!isBannedPath) {
+    // Check IP
+    if (ip !== 'unknown') {
+      const { data: bannedIp } = await supabase
+        .from('banned_ips')
+        .select('ip')
+        .eq('ip', ip)
+        .single()
 
-    if (profile?.is_banned) {
-      return NextResponse.redirect(new URL('/banned', request.url))
+      if (bannedIp) {
+        return NextResponse.redirect(new URL('/banned', request.url))
+      }
+    }
+
+    // Check User Account Ban
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_banned')
+        .eq('id', user.id)
+        .single()
+
+      if (profile?.is_banned) {
+        return NextResponse.redirect(new URL('/banned', request.url))
+      }
     }
   }
 
