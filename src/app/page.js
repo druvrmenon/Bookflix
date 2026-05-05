@@ -50,7 +50,7 @@ export default async function Home() {
         <div style={{ marginBottom: '24px' }}>
           <img src="/logo.png" alt="BookFlix Logo" style={{ height: '80px', width: 'auto', margin: '0 auto' }} />
         </div>
-        <h1>Your Next Great Read Awaits</h1>
+        <h1>BookFlix — Your Next Great Read Awaits</h1>
         <p className="hero-subtitle">
           Discover and rent from OUR curated collection of books.
           Fiction, non-fiction, Malayalam and English — all in one place.
