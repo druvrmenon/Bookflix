@@ -116,7 +116,12 @@ CREATE POLICY "Users can update own profile" ON public.profiles
 -- Admins can update any profile
 DROP POLICY IF EXISTS "Admins can update profiles" ON public.profiles;
 CREATE POLICY "Admins can update profiles" ON public.profiles
-  FOR UPDATE USING (public.is_admin());
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM public.profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
 
 -- Book suggestions
 CREATE TABLE IF NOT EXISTS public.book_suggestions (
@@ -230,6 +235,7 @@ CREATE INDEX IF NOT EXISTS idx_books_available ON public.books (available);
 CREATE INDEX IF NOT EXISTS idx_books_title ON public.books USING gin (title gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_books_author ON public.books USING gin (author gin_trgm_ops);
 CREATE INDEX IF NOT EXISTS idx_rent_requests_user_status ON public.rent_requests (user_id, status);
+CREATE INDEX IF NOT EXISTS idx_profiles_is_banned ON public.profiles (is_banned);
 
 -- ============================================
 -- IP Banning

@@ -86,10 +86,15 @@ export default function AdminUsersPage() {
               <div>
                 <div style={{ fontWeight: 600, fontSize: '1rem' }}>{user.full_name || 'No name'}</div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '2px' }}>{user.id}</div>
-                <div style={{ marginTop: '6px' }}>
+                <div style={{ marginTop: '6px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   <span className={`badge ${user.role === 'admin' ? 'badge-genre' : 'badge-available'}`}>
                     {user.role}
                   </span>
+                  {user.is_banned && (
+                    <span className="badge badge-unavailable" style={{ background: 'var(--red)', color: 'white', borderColor: 'var(--red)' }}>
+                      BANNED
+                    </span>
+                  )}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
@@ -101,9 +106,15 @@ export default function AdminUsersPage() {
                   {user.role === 'admin' ? 'Demote' : 'Promote'}
                 </button>
                 <button
-                  className={`btn btn-sm ${user.is_banned ? 'btn-primary' : 'btn-danger'}`}
+                  className="btn btn-sm"
                   onClick={() => toggleBan(user)}
-                  style={{ fontSize: '0.75rem', padding: '6px 12px', background: user.is_banned ? 'var(--green)' : 'var(--red)' }}
+                  style={{ 
+                    fontSize: '0.75rem', 
+                    padding: '6px 12px', 
+                    background: user.is_banned ? 'var(--green)' : 'var(--red)',
+                    color: 'white',
+                    border: 'none'
+                  }}
                 >
                   {user.is_banned ? 'Unban' : 'Ban'}
                 </button>
