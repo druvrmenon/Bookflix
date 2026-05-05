@@ -46,11 +46,14 @@ export default function PublicCatalogPage() {
         query = query.eq('language', language)
       }
 
+      // Always show available books first, regardless of other sort options
+      query = query.order('available', { ascending: false })
+
       switch (sortBy) {
         case 'title-az': query = query.order('title', { ascending: true }); break;
         case 'title-za': query = query.order('title', { ascending: false }); break;
         case 'author': query = query.order('author', { ascending: true }); break;
-        case 'available': query = query.order('available', { ascending: false }).order('created_at', { ascending: false }); break;
+        case 'available': query = query.order('created_at', { ascending: false }); break;
         case 'newest': default: query = query.order('created_at', { ascending: false }); break;
       }
 

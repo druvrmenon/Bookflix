@@ -38,6 +38,7 @@ export default async function Home() {
   const { data: books } = await supabase
     .from('books')
     .select('*')
+    .order('available', { ascending: false }) // Push unavailable down
     .order('created_at', { ascending: false })
     .limit(10) // Show top 10 newest books
 
