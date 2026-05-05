@@ -6,6 +6,7 @@ import Script from 'next/script' // Next.js script optimization component
 import './globals.css' // Global stylesheet with design system
 import PWARegistration from '@/components/PWARegistration'
 import CookieConsent from '@/components/CookieConsent'
+import { Analytics } from '@vercel/analytics/next' // Vercel Web Analytics
 
 
 // Load Outfit font for headings — variable font for performance
@@ -83,6 +84,7 @@ export default function RootLayout({ children }) {
         <CookieConsent />
         {/* Page content renders here */}
         {children}
+        <Analytics />
 
         {/* Tawk.to Live Chat Widget — only loads if env vars are set */}
         {tawkPropertyId && tawkWidgetId && (
