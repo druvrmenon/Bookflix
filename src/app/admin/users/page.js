@@ -42,6 +42,8 @@ export default function AdminUsersPage() {
 
     if (!error) {
       setUsers(users.map(u => u.id === user.id ? { ...u, is_banned: newBanStatus } : u))
+    } else {
+      alert(`Error updating ban status: ${error.message}`)
     }
   }
 

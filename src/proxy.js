@@ -47,35 +47,44 @@ export async function proxy(request) {
   })
 
   // Refresh the session — this triggers cookie updates if token is stale
-  const { data: { user } } = await supabase.auth.getUser()
+  // Refresh the session — this triggers cookie updates if token is stale
+  const { data } = await supabase.auth.getUser()
+  const user = data?.user
 
   // 2. Perform DB checks (IP Ban + User Ban)
-  if (!isBannedPath) {
-    // Check IP
-    if (ip !== 'unknown') {
-      const { data: bannedIp } = await supabase
-        .from('banned_ips')
-        .select('ip')
-        .eq('ip', ip)
-        .single()
+  let userIsBanned = false
 
-      if (bannedIp) {
-        return NextResponse.redirect(new URL('/banned', request.url))
-      }
-    }
+  // Check IP
+  if (ip !== 'unknown') {
+    const { data: bannedIp } = await supabase
+      .from('banned_ips')
+      .select('ip')
+      .eq('ip', ip)
+      .single()
 
-    // Check User Account Ban
-    if (user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_banned')
-        .eq('id', user.id)
-        .single()
+    if (bannedIp) userIsBanned = true
+  }
 
-      if (profile?.is_banned) {
-        return NextResponse.redirect(new URL('/banned', request.url))
-      }
-    }
+  // Check User Account Ban
+  if (user && !userIsBanned) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_banned')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.is_banned) userIsBanned = true
+  }
+
+  // 3. Enforce Ban Redirects
+  if (userIsBanned && !isBannedPath) {
+    // Redirect banned users TO the banned page
+    return NextResponse.redirect(new URL('/banned', request.url))
+  }
+
+  if (!userIsBanned && isBannedPath) {
+    // Redirect unbanned users AWAY FROM the banned page
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   // Return response with refreshed session cookies
