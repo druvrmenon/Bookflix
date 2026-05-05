@@ -535,7 +535,7 @@ export default function BookDetailPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
                   <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={agreeFees} onChange={e => setAgreeFees(e.target.checked)} required />
-                    <span>I agree to pay ₹35/week and a 2-week advance payment of ₹70.</span>
+                    <span>I agree to pay for 2 weeks in advance (70 rupees).</span>
                   </label>
                   <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={agreeDamage} onChange={e => setAgreeDamage(e.target.checked)} required />
