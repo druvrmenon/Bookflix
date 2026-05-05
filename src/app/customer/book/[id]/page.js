@@ -1,564 +1,76 @@
-'use client'
+import { createClient } from '@supabase/supabase-js'
+import BookDetailClient from './BookDetailClient'
+import { notFound } from 'next/navigation'
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
-import { createClient } from '@/lib/supabase/client'
-import BookLoading from '@/components/BookLoading'
-import Portal from '@/components/Portal'
+// Initialize Supabase (Server Side)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+const supabase = createClient(supabaseUrl, supabaseKey)
 
-export default function BookDetailPage() {
-  const { id } = useParams()
-  const supabase = createClient()
-  const [book, setBook] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [renting, setRenting] = useState(false)
-  const [message, setMessage] = useState('')
-  const [showBack, setShowBack] = useState(false)
-  const [sharingThisShit, setSharingThisShit] = useState(false)
+// 1. DYNAMIC METADATA — This makes Google show the real book title
+export async function generateMetadata({ params }) {
+  const { id } = await params
+  const { data: book } = await supabase
+    .from('books')
+    .select('title, author, description, cover_url')
+    .eq('id', id)
+    .single()
 
-  // Rent request modal
-  const [rentModal, setRentModal] = useState(false)
-  const [contactName, setContactName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [address, setAddress] = useState('')
-  const [agreeFees, setAgreeFees] = useState(false)
-  const [agreeDamage, setAgreeDamage] = useState(false)
-  const [agreeTerms, setAgreeTerms] = useState(false)
+  if (!book) return { title: 'Book Not Found | BookFlix' }
 
-  // Reviews
-  const [reviews, setReviews] = useState([])
-  const [userReview, setUserReview] = useState(null)
-  const [reviewRating, setReviewRating] = useState(5)
-  const [reviewText, setReviewText] = useState('')
-  const [submittingReview, setSubmittingReview] = useState(false)
-  const [canReview, setCanReview] = useState(false)
-
-  useEffect(() => {
-    const fetchBook = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      const { data: fuckingData, error: shitError } = await supabase
-        .from('books').select('*').eq('id', id).single()
-      if (!shitError && fuckingData) setBook(fuckingData)
-
-      // Fetch reviews
-      const { data: reviewsData } = await supabase
-        .from('book_reviews')
-        .select('*, profiles(full_name)')
-        .eq('book_id', id)
-        .order('created_at', { ascending: false })
-
-      if (reviewsData) {
-        setReviews(reviewsData)
-        if (user) {
-          const myReview = reviewsData.find(r => r.user_id === user.id)
-          if (myReview) setUserReview(myReview)
-
-          // Check if user has returned the book
-          const { data: rentData } = await supabase
-            .from('rent_requests')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('book_id', id)
-            .eq('status', 'returned')
-            .limit(1)
-
-          if (rentData && rentData.length > 0) {
-            setCanReview(true)
-          }
-        }
-      }
-
-      setLoading(false)
-    }
-    fetchBook()
-  }, [id])
-
-  const openRentModal = () => {
-    setMessage('')
-    setContactName('')
-    setPhone('')
-    setAddress('')
-    setAgreeFees(false)
-    setAgreeDamage(false)
-    setAgreeTerms(false)
-    setRentModal(true)
+  return {
+    title: `${book.title} by ${book.author} | Rent on BookFlix`,
+    description: book.description || `Rent ${book.title} by ${book.author} on BookFlix. Malayalam and English books available.`,
+    openGraph: {
+      title: `${book.title} by ${book.author}`,
+      description: book.description,
+      images: [book.cover_url || '/og-image.png'],
+    },
   }
+}
 
-  const submitRentRequest = async (e) => {
-    e.preventDefault()
-    if (!contactName.trim() || !phone.trim()) return
-    if (!agreeFees || !agreeDamage || !agreeTerms) {
-      alert('Please agree to all terms before requesting.')
-      return
-    }
+// 2. SERVER COMPONENT — Fetches data before rendering
+export default async function BookPage({ params }) {
+  const { id } = await params
 
-    setRenting(true)
-    setMessage('')
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not logged in')
+  // Fetch book data
+  const { data: book } = await supabase
+    .from('books')
+    .select('*')
+    .eq('id', id)
+    .single()
 
-      const { error: existCheck } = await supabase
-        .from('rent_requests')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('book_id', id)
-        .eq('status', 'pending')
-        .single()
+  if (!book) notFound()
 
-      if (!existCheck) {
-        setMessage('You already have a pending request for this book.')
-        setRentModal(false)
-        return
-      }
-
-      const { error: insertErr } = await supabase
-        .from('rent_requests')
-        .insert({
-          user_id: user.id,
-          book_id: id,
-          contact_name: contactName.trim(),
-          phone: phone.trim(),
-          address: address.trim() || null,
-        })
-
-      if (insertErr) throw insertErr
-      setRentModal(false)
-      setMessage('Rent request sent! The owner will get back to you.')
-    } catch (err) {
-      setMessage(err.message || 'Failed to send request')
-    } finally {
-      setRenting(false)
-    }
+  // 3. PRODUCT SCHEMA (JSON-LD) — Makes Google show Price and Availability
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title,
+    author: {
+      '@type': 'Person',
+      name: book.author,
+    },
+    description: book.description,
+    image: book.cover_url,
+    offers: {
+      '@type': 'Offer',
+      price: '70.00',
+      priceCurrency: 'INR',
+      availability: book.available 
+        ? 'https://schema.org/InStock' 
+        : 'https://schema.org/OutOfStock',
+      url: `https://bookflix.in/customer/book/${id}`,
+    },
   }
-
-  const handleSubmitReview = async (e) => {
-    e.preventDefault()
-    setSubmittingReview(true)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not logged in')
-
-      const { data, error } = await supabase
-        .from('book_reviews')
-        .insert({
-          book_id: id,
-          user_id: user.id,
-          rating: parseInt(reviewRating),
-          review_text: reviewText.trim() || null
-        })
-        .select('*, profiles(full_name)')
-        .single()
-
-      if (error) throw error
-
-      setReviews([data, ...reviews])
-      setUserReview(data)
-      setReviewText('')
-      setReviewRating(5)
-    } catch (err) {
-      alert(err.message || 'Failed to submit review')
-    } finally {
-      setSubmittingReview(false)
-    }
-  }
-
-  const handleShareStory = async () => {
-    setSharingThisShit(true)
-    setMessage('')
-    try {
-      const canvas = document.createElement('canvas')
-      canvas.width = 1080
-      canvas.height = 1920
-      const ctx = canvas.getContext('2d')
-
-      ctx.fillStyle = '#1a120c'
-      ctx.fillRect(0, 0, 1080, 1920)
-
-      ctx.fillStyle = '#c9956c'
-      ctx.font = 'bold 50px sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText("Available to rent on BookFlix!", 540, 250)
-
-      const loadImg = (src) => new Promise((resolve, reject) => {
-        const img = new Image()
-        img.crossOrigin = 'anonymous'
-        img.onload = () => resolve(img)
-        img.onerror = reject
-        img.src = src
-      })
-
-      if (book.cover_url) {
-        const coverImg = await loadImg(book.cover_url)
-        const coverWidth = 700
-        const coverHeight = 1050
-        const coverX = (1080 - coverWidth) / 2
-        const coverY = 290 // Moved up slightly
-
-        // Add drop shadow
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
-        ctx.shadowBlur = 50
-        ctx.shadowOffsetX = 0
-        ctx.shadowOffsetY = 20
-
-        ctx.drawImage(coverImg, coverX, coverY, coverWidth, coverHeight)
-
-        // Reset shadow
-        ctx.shadowColor = 'transparent'
-      }
-
-      ctx.fillStyle = '#f9fafb'
-      ctx.font = 'bold 80px sans-serif'
-      const safeTitle = book.title.length > 25 ? book.title.substring(0, 22) + '...' : book.title
-      ctx.fillText(safeTitle, 540, 1450)
-
-      ctx.fillStyle = '#a8a29e'
-      ctx.font = '45px sans-serif'
-      ctx.fillText(`by ${book.author}`, 540, 1530)
-
-
-
-      try {
-        const logoImg = await loadImg(window.location.origin + '/logo.png')
-        const logoHeight = 160
-        const logoWidth = logoImg.width * (logoHeight / logoImg.height)
-        ctx.drawImage(logoImg, (1080 - logoWidth) / 2, 1620, logoWidth, logoHeight)
-      } catch (e) {
-        console.error("Failed to load logo", e)
-      }
-
-      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'))
-      const file = new File([blob], 'bookflix-story.png', { type: 'image/png' })
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: book.title,
-          text: `Reading ${book.title} on BookFlix!`,
-        })
-      } else {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `story-${book.title.replace(/\s+/g, '-').toLowerCase()}.png`
-        a.click()
-        URL.revokeObjectURL(url)
-        setMessage('Story graphic downloaded! You can now upload it to Instagram.')
-      }
-    } catch (fuckinError) {
-      console.error(fuckinError)
-      setMessage('Failed to generate story image.')
-    } finally {
-      setSharingThisShit(false)
-    }
-  }
-
-  if (loading) return <BookLoading text="Loading book details..." />
-
-  if (!book) {
-    return (
-      <div className="empty-state">
-        <div className="empty-state-icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
-        </div>
-        <div className="empty-state-text">Book not found</div>
-        <Link href="/customer" className="btn btn-secondary mt-2">Back to Catalog</Link>
-      </div>
-    )
-  }
-
-  const currentCover = showBack && book.back_cover_url ? book.back_cover_url : book.cover_url
 
   return (
-    <div className="fade-in">
-      <Link href="/customer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--rose-gold)', marginBottom: '20px', fontSize: '0.9rem' }}>
-        ← Back to Catalog
-      </Link>
-
-      <div className="book-detail">
-        {/* Cover section */}
-        <div>
-          <div className="book-detail-cover" style={{ position: 'relative' }}>
-            {currentCover ? (
-              <Image
-                src={currentCover}
-                alt={showBack ? 'Back cover' : book.title}
-                fill
-                sizes="(max-width: 640px) 100vw, 300px"
-                style={{ objectFit: 'cover' }}
-              />
-            ) : (
-              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                </svg>
-              </div>
-            )}
-          </div>
-          {/* Front/Back toggle — only show if back cover exists */}
-          {book.back_cover_url && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '16px', justifyContent: 'center' }}>
-              <button
-                className={`btn btn-sm ${!showBack ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setShowBack(false)}
-              >
-                Front
-              </button>
-              <button
-                className={`btn btn-sm ${showBack ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setShowBack(true)}
-              >
-                Back
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Book info */}
-        <div className="book-detail-info">
-          <h1>{book.title}</h1>
-          <div className="book-detail-author">by {book.author}</div>
-
-          {/* Average Rating */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--text-muted)' }}>
-            <span style={{ color: 'var(--yellow)', fontSize: '1.2rem' }}>★</span>
-            <span style={{ fontWeight: 'bold', color: 'var(--text)' }}>
-              {reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : 'New'}
-            </span>
-            <span style={{ fontSize: '0.85rem' }}>({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</span>
-          </div>
-
-          {/* Genre and language badges */}
-          <div className="book-detail-meta">
-            {Array.isArray(book.genre) ? (
-              book.genre.map(g => (<span key={g} className="badge badge-genre">{g}</span>))
-            ) : (
-              <span className="badge badge-genre">{book.genre}</span>
-            )}
-            <span className="badge badge-genre" style={{ background: 'var(--text-muted)' }}>{book.language}</span>
-          </div>
-
-          {/* Description */}
-          {book.description && (
-            <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', lineHeight: 1.7, marginTop: '16px', marginBottom: '16px' }}>
-              {book.description}
-            </div>
-          )}
-
-          {/* Availability */}
-          <div className={`book-detail-availability ${book.available ? 'in-stock' : 'out-of-stock'}`}>
-            {book.available ? (
-              '✓ Available for Rent'
-            ) : (
-              <>
-                ✕ Currently Out of Stock
-                {book.available_date && (
-                  <div className="book-detail-date">
-                    Expected back: {new Date(book.available_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Message banner */}
-          {message && (
-            <div className="auth-error" style={{
-              background: message.includes('sent') ? 'var(--green-bg)' : message.includes('pending') ? 'rgba(251, 191, 36, 0.1)' : 'var(--red-bg)',
-              color: message.includes('sent') ? 'var(--green)' : message.includes('pending') ? 'var(--yellow)' : 'var(--red)',
-              borderColor: message.includes('sent') ? 'rgba(74,222,128,0.3)' : message.includes('pending') ? 'rgba(251,191,36,0.3)' : 'rgba(248,113,113,0.3)',
-              marginBottom: '16px',
-            }}>
-              {message}
-            </div>
-          )}
-
-          {/* Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px', alignItems: 'center' }}>
-            {/* Rent button */}
-            {book.available && (
-              <button onClick={openRentModal} className="btn btn-primary" disabled={renting}
-                style={{ width: '100%', maxWidth: '300px' }}>
-                Request to Rent
-              </button>
-            )}
-
-            {/* Share to IG Story button */}
-            <button onClick={handleShareStory} className="btn" disabled={sharingThisShit}
-              style={{
-                width: '100%',
-                maxWidth: '300px',
-                background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-                color: 'white',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}>
-              {sharingThisShit ? <span className="spinner"></span> : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
-              )}
-              Share to IG Story
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Reviews Section */}
-      <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '24px' }}>Reviews</h2>
-
-        {/* Write a review form */}
-        {!userReview ? (
-          canReview ? (
-            <div className="card" style={{ marginBottom: '24px', backgroundColor: 'var(--bg-secondary)' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '12px' }}>Leave a Review</h3>
-              <form onSubmit={handleSubmitReview}>
-                <div className="form-group">
-                  <label className="form-label" style={{ marginBottom: '8px' }}>Rating</label>
-                  <div style={{ display: 'flex', gap: '8px', fontSize: '1.5rem' }}>
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <span
-                        key={star}
-                        onClick={() => setReviewRating(star)}
-                        style={{ cursor: 'pointer', color: star <= reviewRating ? 'var(--yellow)' : 'var(--border-color)' }}
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Review (optional)</label>
-                  <textarea
-                    className="form-input"
-                    rows="3"
-                    placeholder="What did you think of this book?"
-                    value={reviewText}
-                    onChange={e => setReviewText(e.target.value)}
-                  />
-                </div>
-                <button type="submit" className="btn btn-primary" disabled={submittingReview}>
-                  {submittingReview ? 'Submitting...' : 'Submit Review'}
-                </button>
-              </form>
-            </div>
-          ) : (
-            <div className="card" style={{ marginBottom: '24px', backgroundColor: 'var(--bg-secondary)', textAlign: 'center', padding: '16px' }}>
-              <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '0.9rem' }}>You can review this book after you have rented and returned it.</p>
-            </div>
-          )
-        ) : (
-          <div className="card" style={{ marginBottom: '24px', backgroundColor: 'var(--bg-secondary)', border: '1px solid rgba(74,222,128,0.2)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-              <strong>Your Review</strong>
-              <div style={{ color: 'var(--yellow)' }}>
-                {'★'.repeat(userReview.rating)}{'☆'.repeat(5 - userReview.rating)}
-              </div>
-            </div>
-            {userReview.review_text && (
-              <p style={{ color: 'var(--text-muted)', margin: 0 }}>{userReview.review_text}</p>
-            )}
-          </div>
-        )}
-
-        {/* Reviews List */}
-        {reviews.length === 0 ? (
-          <p style={{ color: 'var(--text-dim)' }}>No reviews yet. Be the first to review!</p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {reviews.map(review => {
-              if (userReview && review.id === userReview.id) return null // don't show user's review twice
-              return (
-                <div key={review.id} style={{ padding: '16px', borderBottom: '1px solid var(--border-color)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <strong>{review.profiles?.full_name || 'Anonymous'}</strong>
-                    <div style={{ color: 'var(--yellow)' }}>
-                      {'★'.repeat(review.rating)}{'☆'.repeat(5 - review.rating)}
-                    </div>
-                  </div>
-                  {review.review_text && (
-                    <p style={{ color: 'var(--text-muted)', margin: 0, lineHeight: 1.5 }}>{review.review_text}</p>
-                  )}
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginTop: '8px' }}>
-                    {new Date(review.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Rent request modal */}
-      {rentModal && (
-        <Portal>
-          <div className="crop-modal" onClick={() => setRentModal(false)}>
-            <div onClick={e => e.stopPropagation()} style={{
-              background: 'var(--brown-800)',
-              border: '1px solid rgba(201, 149, 108, 0.15)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '24px',
-              width: 'calc(100vw - 32px)',
-              maxWidth: '400px',
-              boxShadow: 'var(--shadow-lg)',
-            }}>
-              <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Request to Rent</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-                Enter your details so the owner can reach you.
-              </p>
-              <form onSubmit={submitRentRequest} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" htmlFor="rent-name">Your Name *</label>
-                  <input id="rent-name" className="form-input" type="text"
-                    value={contactName} onChange={e => setContactName(e.target.value)}
-                    placeholder="Full name" required />
-                </div>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" htmlFor="rent-phone">Phone Number *</label>
-                  <input id="rent-phone" className="form-input" type="tel"
-                    value={phone} onChange={e => setPhone(e.target.value)}
-                    placeholder="e.g. 9876543210" required />
-                </div>
-                <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" htmlFor="rent-addr">Full Address *</label>
-                  <textarea id="rent-addr" className="form-input" rows={2}
-                    value={address} onChange={e => setAddress(e.target.value)}
-                    placeholder="Full address" required style={{ resize: 'vertical' }} />
-                </div>
-
-                {/* Policy Checkboxes */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
-                  <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={agreeFees} onChange={e => setAgreeFees(e.target.checked)} required />
-                    <span>I agree to pay for 2 weeks in advance (70 rupees).</span>
-                  </label>
-                  <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={agreeDamage} onChange={e => setAgreeDamage(e.target.checked)} required />
-                    <span>I agree to pay ₹600 if the book is damaged or lost.</span>
-                  </label>
-                  <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)} required />
-                    <span>I agree to the <Link href="/terms" target="_blank" style={{ color: 'var(--rose-gold)', textDecoration: 'underline' }}>Terms and Conditions</Link>.</span>
-                  </label>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
-                  <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
-                    onClick={() => setRentModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={renting || !agreeFees || !agreeDamage || !agreeTerms}>
-                    {renting ? '...' : 'Send Request'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </Portal>
-      )}
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <BookDetailClient initialBook={book} id={id} />
+    </>
   )
 }
