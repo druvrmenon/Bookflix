@@ -58,7 +58,6 @@ export default function Navbar({ role }) {
             width={120} 
             height={40} 
             className="navbar-logo-img" 
-            style={{ width: 'auto', height: '100%' }}
             priority
           />
         </Link>
