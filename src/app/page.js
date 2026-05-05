@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import BookCard from '@/components/BookCard'
 
+export const dynamic = 'force-dynamic'
+
 export default async function Home() {
   // Create Supabase client with cookie-based session
   const supabase = await createClient()
