@@ -17,7 +17,7 @@ export async function proxy(request) {
 
   // Skip Supabase session refresh if not configured
   if (!url || !key || !url.startsWith('http')) {
-    return NextResponse.next({ request }) // Pass through without modification
+    return NextResponse.next({ request }) // Pass through without modification lol
   }
 
   // Create initial response (will be replaced if cookies change)
