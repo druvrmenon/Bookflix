@@ -3,6 +3,7 @@
 // This is a Server Component — runs on the server for fast initial load
 
 import Link from 'next/link' // Next.js optimized link
+import Image from 'next/image'
 import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import BookCard from '@/components/BookCard'
@@ -47,8 +48,15 @@ export default async function Home() {
     <div className="landing-page fade-in">
       {/* Hero Section */}
       <div className="hero" style={{ minHeight: 'auto', padding: '80px 16px 60px' }}>
-        <div style={{ marginBottom: '24px' }}>
-          <img src="/logo.png" alt="BookFlix Logo" style={{ height: '80px', width: 'auto', margin: '0 auto' }} />
+        <div style={{ marginBottom: '24px', position: 'relative', height: '80px', display: 'flex', justifyContent: 'center' }}>
+          <Image 
+            src="/logo.png" 
+            alt="BookFlix Logo" 
+            width={200} 
+            height={80} 
+            priority
+            style={{ height: '80px', width: 'auto' }} 
+          />
         </div>
         <h1>BookFlix — Your Next Great Read Awaits</h1>
         <p className="hero-subtitle">
@@ -68,10 +76,11 @@ export default async function Home() {
       {/* Public Catalog Preview */}
       <div className="container" style={{ padding: '0 16px 80px', maxWidth: '1200px', margin: '0 auto' }}>
         <div className="book-grid">
-          {books?.map((book) => (
+          {books?.map((book, index) => (
             <BookCard 
               key={book.id} 
               book={book} 
+              priority={index < 4}
             />
           ))}
         </div>

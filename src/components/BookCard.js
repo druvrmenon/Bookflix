@@ -16,7 +16,7 @@ function shouldShowNewBadge(book) {
   return new Date(book.created_at) > sevenDaysAgo
 }
 
-export default function BookCard({ book, basePath = '/customer/book' }) {
+export default function BookCard({ book, basePath = '/customer/book', priority = false }) {
   const coverUrl = book.cover_url || null
   const showNew = shouldShowNewBadge(book)
 
@@ -31,6 +31,7 @@ export default function BookCard({ book, basePath = '/customer/book' }) {
               src={coverUrl} 
               alt={book.title} 
               fill
+              priority={priority}
               sizes="(max-width: 480px) 50vw, (max-width: 768px) 33vw, 250px"
               style={{ objectFit: 'cover' }}
             />
