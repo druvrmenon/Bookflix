@@ -907,7 +907,7 @@ h4 { font-size: 1.1rem; }
 }
 
 .navbar-logo-img {
-  height: 32px; /* Reduced for mobile */
+  height: 40px; /* Bigger for mobile */
   width: auto;
   object-fit: contain;
   margin-right: -4px;
@@ -915,7 +915,7 @@ h4 { font-size: 1.1rem; }
 
 @media (min-width: 768px) {
   .navbar-logo-img {
-    height: 48px;
+    height: 56px; /* Bigger for desktop */
   }
 }
 
