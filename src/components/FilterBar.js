@@ -1,28 +1,36 @@
 // FilterBar component — horizontally scrollable genre and language filter chips
 'use client' // Client component because it handles click events
 
-import { GENRES, LANGUAGES } from '@/lib/constants' // Import available genres and languages
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import { LANGUAGES } from '@/lib/constants'
 
-// Accepts selected values and change handlers from parent component
 export default function FilterBar({ selectedGenre, onGenreChange, selectedLanguage, onLanguageChange }) {
+  const [dbGenres, setDbGenres] = useState([])
+  const supabase = createClient()
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      const { data } = await supabase.from('genres').select('name').order('name')
+      if (data) setDbGenres(data.map(g => g.name))
+    }
+    fetchGenres()
+  }, [supabase])
+
   return (
-    // Vertical stack of filter rows
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      {/* Genre filter chips — horizontally scrollable on mobile */}
       <div className="filter-bar">
-        {/* "All Genres" chip — clears genre filter when clicked */}
         <button
           className={`filter-chip ${selectedGenre === '' ? 'active' : ''}`}
-          onClick={() => onGenreChange('')} // Clear genre filter
+          onClick={() => onGenreChange('')}
         >
           All Genres
         </button>
-        {/* One chip per genre from constants */}
-        {GENRES.map((genre) => (
+        {dbGenres.map((genre) => (
           <button
             key={genre}
-            className={`filter-chip ${selectedGenre === genre ? 'active' : ''}`} // Highlight if selected
-            onClick={() => onGenreChange(genre)} // Set this genre as filter
+            className={`filter-chip ${selectedGenre === genre ? 'active' : ''}`}
+            onClick={() => onGenreChange(genre)}
           >
             {genre}
           </button>

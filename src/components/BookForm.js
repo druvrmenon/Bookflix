@@ -5,7 +5,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { GENRES, LANGUAGES } from '@/lib/constants'
+import { LANGUAGES } from '@/lib/constants'
 import ReactCrop from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 
@@ -14,15 +14,31 @@ export default function BookForm({ book = null }) {
   const router = useRouter()
   const supabase = createClient()
 
+  // Dynamic Genres from DB
+  const [dbGenres, setDbGenres] = useState([])
+  const [fetchingGenres, setFetchingGenres] = useState(true)
+
   // Form fields
   const [title, setTitle] = useState(book?.title || '')
   const [author, setAuthor] = useState(book?.author || '')
   const [description, setDescription] = useState(book?.description || '')
-  const initialGenres = Array.isArray(book?.genre)
-    ? book.genre
-    : (book?.genre ? [book.genre] : [GENRES[0]])
-  const [genre, setGenre] = useState(initialGenres)
+  
+  // Initialize genre with book's genres or empty array
+  const [genre, setGenre] = useState(Array.isArray(book?.genre) ? book.genre : (book?.genre ? [book.genre] : []))
   const [language, setLanguage] = useState(book?.language || LANGUAGES[0])
+
+  // Fetch genres on mount
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const { data } = await supabase.from('genres').select('name').order('name')
+        if (data) setDbGenres(data.map(g => g.name))
+      } finally {
+        setFetchingGenres(false)
+      }
+    }
+    fetchGenres()
+  }, [supabase])
 
   // Toggle genre selection (min 1 required)
   const toggleGenre = (g) => {
@@ -140,8 +156,8 @@ export default function BookForm({ book = null }) {
       setCoverIsExternal(true)
 
       // Try to match genres from subjects
-      if (bookData.subjects) {
-        const matchedGenres = GENRES.filter(g => 
+      if (bookData.subjects && dbGenres.length > 0) {
+        const matchedGenres = dbGenres.filter(g => 
           bookData.subjects.some(s => s.toLowerCase().includes(g.toLowerCase()))
         )
         if (matchedGenres.length > 0) setGenre(matchedGenres)
@@ -379,14 +395,27 @@ export default function BookForm({ book = null }) {
         <div className="form-group" style={{ gridColumn: '1 / -1', marginBottom: '16px' }}>
           <label className="form-label">Genres</label>
           <div className="filter-bar" style={{ flexWrap: 'wrap', overflowX: 'visible', paddingBottom: '0' }}>
-            {GENRES.map((g) => (
-              <button key={g} type="button"
-                className={`filter-chip ${genre.includes(g) ? 'active' : ''}`}
-                onClick={() => toggleGenre(g)}>
-                {g}
-              </button>
-            ))}
+            {fetchingGenres ? (
+              <span className="spinner"></span>
+            ) : dbGenres.length > 0 ? (
+              dbGenres.map((g) => (
+                <button key={g} type="button"
+                  className={`filter-chip ${genre.includes(g) ? 'active' : ''}`}
+                  onClick={() => toggleGenre(g)}>
+                  {g}
+                </button>
+              ))
+            ) : (
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
+                No genres found. <Link href="/admin/genres" style={{ color: 'var(--rose-gold)', textDecoration: 'underline' }}>Add some here</Link>
+              </div>
+            )}
           </div>
+          {!fetchingGenres && dbGenres.length > 0 && (
+             <Link href="/admin/genres" style={{ fontSize: '0.75rem', color: 'var(--rose-gold)', marginTop: '8px', display: 'inline-block' }}>
+               + Manage Genres
+             </Link>
+          )}
         </div>
 
         {/* Language */}

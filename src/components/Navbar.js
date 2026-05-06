@@ -39,6 +39,7 @@ export default function Navbar({ role }) {
     { href: '/admin', label: 'Dashboard' },
     { href: '/admin/book/new', label: 'Add Book' },
     { href: '/admin/requests', label: 'Requests' },
+    { href: '/admin/genres', label: 'Genres' },
     { href: '/admin/users', label: 'Users' },
     { href: '/admin/online', label: 'Live Activity' },
     { href: '/admin/banned-ips', label: 'IP Bans' },
