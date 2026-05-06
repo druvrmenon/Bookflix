@@ -7,6 +7,7 @@ import BookCard from '@/components/BookCard'
 import SearchBar from '@/components/SearchBar'
 import FilterBar from '@/components/FilterBar'
 import BookLoading from '@/components/BookLoading'
+import BookSkeleton from '@/components/BookSkeleton'
 import Portal from '@/components/Portal'
 
 export default function CatalogPage() {
@@ -219,8 +220,10 @@ export default function CatalogPage() {
 
       {/* Book grid */}
       {loading && page === 0 ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-          <div className="spinner"></div>
+        <div className="book-grid">
+          {[...Array(8)].map((_, i) => (
+            <BookSkeleton key={i} />
+          ))}
         </div>
       ) : books.length === 0 ? (
         <div className="empty-state">

@@ -1111,6 +1111,25 @@ h4 { font-size: 1.1rem; }
   to { transform: rotate(360deg); }
 }
 
+/* --- Skeleton Loaders --- */
+.skeleton {
+  background: var(--brown-700);
+  background: linear-gradient(
+    90deg,
+    var(--brown-700) 25%,
+    var(--brown-600) 50%,
+    var(--brown-700) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .fade-in {
   animation: fadeIn 0.4s ease;
 }

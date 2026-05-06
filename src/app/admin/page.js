@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Modal from '@/components/Modal'
 import BookLoading from '@/components/BookLoading'
+import TableSkeleton from '@/components/TableSkeleton'
+import Skeleton from '@/components/Skeleton'
 import Portal from '@/components/Portal'
 
 export default function AdminDashboard() {
@@ -90,7 +92,25 @@ export default function AdminDashboard() {
     setDeleteModal(null)
   }
 
-  if (loading) return <BookLoading text="Loading dashboard..." />
+  if (loading) {
+    return (
+      <div className="fade-in">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div>
+            <Skeleton width="200px" height="32px" style={{ marginBottom: '8px' }} />
+            <Skeleton width="150px" height="16px" />
+          </div>
+          <Skeleton width="120px" height="40px" />
+        </div>
+        <div className="stats-grid" style={{ marginBottom: '24px' }}>
+          <Skeleton height="100px" borderRadius="var(--radius-lg)" />
+          <Skeleton height="100px" borderRadius="var(--radius-lg)" />
+          <Skeleton height="100px" borderRadius="var(--radius-lg)" />
+        </div>
+        <TableSkeleton rows={8} columns={6} />
+      </div>
+    )
+  }
 
   return (
     <div className="fade-in">
