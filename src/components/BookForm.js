@@ -4,6 +4,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { LANGUAGES } from '@/lib/constants'
 import ReactCrop from 'react-image-crop'
@@ -38,7 +39,7 @@ export default function BookForm({ book = null }) {
       }
     }
     fetchGenres()
-  }, [supabase])
+  }, []) // Empty dependency array — only run once on mount
 
   // Toggle genre selection (min 1 required)
   const toggleGenre = (g) => {
