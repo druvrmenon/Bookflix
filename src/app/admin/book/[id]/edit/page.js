@@ -65,7 +65,7 @@ export default function EditBookPage() {
         <p className="page-subtitle">Update the details for &quot;{book.title}&quot;</p>
       </div>
       {/* BookForm with `book` prop = edit mode (pre-fills all fields) */}
-      <BookForm book={book} />
+      <BookForm key={book.id} book={book} />
     </div>
   )
 }

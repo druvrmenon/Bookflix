@@ -42,6 +42,7 @@ export default function BookForm({ book = null }) {
 
   // Toggle genre selection (min 1 required)
   const toggleGenre = (g) => {
+    if (!Array.isArray(genre)) return // Safety check
     if (genre.includes(g)) {
       if (genre.length > 1) setGenre(genre.filter(item => item !== g))
     } else {
@@ -400,7 +401,7 @@ export default function BookForm({ book = null }) {
             ) : dbGenres.length > 0 ? (
               dbGenres.map((g) => (
                 <button key={g} type="button"
-                  className={`filter-chip ${genre.includes(g) ? 'active' : ''}`}
+                  className={`filter-chip ${Array.isArray(genre) && genre.includes(g) ? 'active' : ''}`}
                   onClick={() => toggleGenre(g)}>
                   {g}
                 </button>
