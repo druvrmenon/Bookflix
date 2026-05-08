@@ -160,6 +160,8 @@ CREATE TABLE IF NOT EXISTS public.rent_requests (
   contact_name TEXT NOT NULL,
   phone TEXT NOT NULL,
   address TEXT,
+  latitude FLOAT8,
+  longitude FLOAT8,
   message TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned')),
   due_date DATE,

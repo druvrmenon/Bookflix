@@ -6,6 +6,12 @@ import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import BookLoading from '@/components/BookLoading'
 import Portal from '@/components/Portal'
+import dynamic from 'next/dynamic'
+
+const MapPicker = dynamic(() => import('@/components/MapPicker'), { 
+  ssr: false,
+  loading: () => <div style={{ height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-secondary)', borderRadius: 'var(--radius)' }}>Loading Map...</div>
+})
 
 export default function BookDetailClient({ initialBook, id }) {
   const supabase = createClient()
@@ -24,6 +30,9 @@ export default function BookDetailClient({ initialBook, id }) {
   const [agreeFees, setAgreeFees] = useState(false)
   const [agreeDamage, setAgreeDamage] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [lat, setLat] = useState(null)
+  const [lng, setLng] = useState(null)
+  const [showMap, setShowMap] = useState(false)
 
   // Reviews
   const [reviews, setReviews] = useState([])
@@ -85,6 +94,9 @@ export default function BookDetailClient({ initialBook, id }) {
     setAgreeFees(false)
     setAgreeDamage(false)
     setAgreeTerms(false)
+    setLat(null)
+    setLng(null)
+    setShowMap(false)
     setRentModal(true)
   }
 
@@ -124,6 +136,8 @@ export default function BookDetailClient({ initialBook, id }) {
           contact_name: contactName.trim(),
           phone: phone.trim(),
           address: address.trim() || null,
+          latitude: lat,
+          longitude: lng,
         })
 
       if (insertErr) throw insertErr
@@ -467,6 +481,24 @@ export default function BookDetailClient({ initialBook, id }) {
                   <label className="form-label" htmlFor="rent-addr">Full Address *</label>
                   <textarea id="rent-addr" className="form-input" rows={2} value={address} onChange={e => setAddress(e.target.value)} placeholder="Full address" required style={{ resize: 'vertical' }} />
                 </div>
+
+                <div style={{ margin: '4px 0' }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-sm btn-secondary" 
+                    style={{ width: '100%', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    onClick={() => setShowMap(!showMap)}
+                  >
+                    📍 {showMap ? 'Hide Map' : (lat ? 'Location Set ✓' : 'Pin Location on Map (Optional)')}
+                  </button>
+                  {showMap && (
+                    <MapPicker onLocationSelect={(lat, lng) => {
+                      setLat(lat)
+                      setLng(lng)
+                    }} />
+                  )}
+                </div>
+
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
                   <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={agreeFees} onChange={e => setAgreeFees(e.target.checked)} required />

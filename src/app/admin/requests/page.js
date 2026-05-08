@@ -149,7 +149,35 @@ export default function AdminRentRequestsPage() {
           <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
             <p style={{ margin: '0 0 2px 0' }}>From: <strong style={{ color: 'var(--text)' }}>{req.contact_name || req.profiles?.full_name || 'Unknown'}</strong></p>
             <p style={{ margin: '0 0 2px 0' }}>📞 <a href={`tel:${req.phone}`} style={{ color: 'var(--rose-gold)', textDecoration: 'none' }}>{req.phone || 'No phone'}</a></p>
-            {req.address && <p style={{ margin: '0 0 2px 0' }}>📍 {req.address}</p>}
+            {req.address && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', margin: '0 0 2px 0' }}>
+                <span style={{ flexShrink: 0 }}>📍</span>
+                <div style={{ flex: 1 }}>
+                  {req.address}
+                  {req.latitude && req.longitude && (
+                    <a 
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${req.latitude},${req.longitude}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="btn btn-sm"
+                      style={{ 
+                        display: 'inline-flex', 
+                        padding: '2px 8px', 
+                        fontSize: '0.75rem', 
+                        marginLeft: '8px',
+                        background: 'rgba(201, 149, 108, 0.1)',
+                        border: '1px solid var(--rose-gold)',
+                        color: 'var(--rose-gold)',
+                        textDecoration: 'none',
+                        borderRadius: '4px'
+                      }}
+                    >
+                      Navigate
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
             <p style={{ margin: 0 }}>{new Date(req.created_at).toLocaleDateString()}</p>
           </div>
         </div>
