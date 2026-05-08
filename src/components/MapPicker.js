@@ -23,6 +23,10 @@ function LocationMarker({ position, setPosition }) {
       setPosition(e.latlng)
       map.flyTo(e.latlng, map.getZoom())
     },
+    locationfound(e) {
+      setPosition(e.latlng)
+      map.flyTo(e.latlng, map.getZoom())
+    },
   })
 
   return position === null ? null : (
@@ -32,6 +36,7 @@ function LocationMarker({ position, setPosition }) {
 
 export default function MapPicker({ onLocationSelect, initialPos = { lat: 10.8505, lng: 76.2711 } }) {
   const [position, setPosition] = useState(null)
+  const [map, setMap] = useState(null)
 
   useEffect(() => {
     if (position) {
@@ -39,21 +44,55 @@ export default function MapPicker({ onLocationSelect, initialPos = { lat: 10.850
     }
   }, [position, onLocationSelect])
 
+  const handleLocate = () => {
+    if (map) {
+      map.locate()
+    }
+  }
+
   return (
-    <div style={{ height: '250px', width: '100%', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border-color)', marginTop: '10px' }}>
-      <MapContainer 
-        center={[initialPos.lat, initialPos.lng]} 
-        zoom={13} 
-        style={{ height: '100%', width: '100%' }}
+    <div style={{ position: 'relative', marginTop: '10px' }}>
+      <div style={{ height: '250px', width: '100%', borderRadius: 'var(--radius)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+        <MapContainer 
+          center={[initialPos.lat, initialPos.lng]} 
+          zoom={13} 
+          style={{ height: '100%', width: '100%' }}
+          ref={setMap}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <LocationMarker position={position} setPosition={setPosition} />
+        </MapContainer>
+      </div>
+      
+      <button 
+        type="button"
+        onClick={handleLocate}
+        style={{
+          position: 'absolute',
+          top: '10px',
+          right: '10px',
+          zIndex: 1000,
+          background: 'var(--bg-secondary)',
+          border: '1px solid var(--border-color)',
+          borderRadius: '4px',
+          padding: '6px 10px',
+          fontSize: '0.8rem',
+          cursor: 'pointer',
+          color: 'var(--text)',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px'
+        }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <LocationMarker position={position} setPosition={setPosition} />
-      </MapContainer>
+        🎯 Locate Me
+      </button>
+
       <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '4px', textAlign: 'center' }}>
-        Click on the map to set your delivery location
+        Click map or use "Locate Me" to set delivery location
       </p>
     </div>
   )
