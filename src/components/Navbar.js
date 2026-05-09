@@ -45,6 +45,7 @@ export default function Navbar({ role }) {
     { href: '/admin/online', label: 'Live Activity' },
     { href: '/admin/banned-ips', label: 'IP Bans' },
     { href: '/admin/suggestions', label: 'Suggestions' },
+    { href: '/admin/announcements', label: 'Announce' },
   ]
 
   const links = role === 'admin' ? adminLinks : customerLinks
