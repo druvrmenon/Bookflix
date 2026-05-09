@@ -18,7 +18,9 @@ export default function SeriesExpandRow({ seriesName, volumes, onClose, basePath
       <div className="series-expand-header">
         <div>
           <h2 className="series-expand-title">{seriesName}</h2>
-          <div className="series-expand-meta">{volumes.length} Volumes</div>
+          <div className="series-expand-meta">
+            {volumes.length} {volumes.length === 1 ? 'Volume' : 'Volumes'}
+          </div>
         </div>
         <button 
           className="series-expand-close" 

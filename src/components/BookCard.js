@@ -50,7 +50,9 @@ export default function BookCard({ book, basePath = '/customer/book', priority =
           {showNew && !isSeries && <span className="badge-new">NEW</span>}
           {' '}
           {isSeries ? (
-            <span className="badge badge-series">{seriesVolumes.length} Volumes</span>
+            <span className="badge badge-series">
+              {seriesVolumes.length} {seriesVolumes.length === 1 ? 'Volume' : 'Volumes'}
+            </span>
           ) : (
             <span className={`badge ${book.available ? 'badge-available' : 'badge-unavailable'}`}>
               {book.available ? 'Available' : 'Out of Stock'}
