@@ -424,6 +424,11 @@ export default function BookForm({ book = null }) {
               <datalist id="series-list">
                 {dbSeries.map(s => <option key={s} value={s} />)}
               </datalist>
+              {seriesName && dbSeries.length > 0 && !dbSeries.includes(seriesName) && (
+                <div style={{ fontSize: '0.75rem', color: 'var(--rose-gold)', marginTop: '4px' }}>
+                  * New series will be created
+                </div>
+              )}
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="volume-number">Volume Number</label>
