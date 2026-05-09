@@ -235,6 +235,11 @@ export default function BookDetailClient({ initialBook, id }) {
         const logoHeight = 160
         const logoWidth = logoImg.width * (logoHeight / logoImg.height)
         ctx.drawImage(logoImg, (1080 - logoWidth) / 2, 1620, logoWidth, logoHeight)
+        
+        // Add URL text below logo
+        ctx.fillStyle = '#c9956c'
+        ctx.font = '40px sans-serif'
+        ctx.fillText('www.bookflix.in', 540, 1820)
       } catch (e) {
         console.error("Failed to load logo", e)
       }
@@ -246,7 +251,8 @@ export default function BookDetailClient({ initialBook, id }) {
         await navigator.share({
           files: [file],
           title: book.title,
-          text: `Reading ${book.title} on BookFlix!`,
+          text: `Check out "${book.title}" on BookFlix!`,
+          url: window.location.href,
         })
       } else {
         const url = URL.createObjectURL(blob)
