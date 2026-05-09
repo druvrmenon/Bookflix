@@ -19,8 +19,18 @@ export default function PublicCatalogPage() {
   const [search, setSearch] = useState('')
   const [genre, setGenre] = useState('')
   const [language, setLanguage] = useState('')
-  const [sortBy, setSortBy] = useState('title-az') // Sort option — alphabetical default
+  const [sortBy, setSortBy] = useState('random') // Default to random for discovery
   const supabase = createClient()
+
+  // Shuffle helper function
+  const shuffle = (array) => {
+    const shuffled = [...array]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    return shuffled
+  }
 
   // Reset page when filters change
   useEffect(() => {
@@ -46,15 +56,19 @@ export default function PublicCatalogPage() {
         query = query.eq('language', language)
       }
 
-      // Always show available books first, regardless of other sort options
-      query = query.order('available', { ascending: false })
+      // If sortBy is random, we just fetch normally and shuffle in the frontend
+      // Otherwise, apply specific database ordering
+      if (sortBy !== 'random') {
+        // Always show available books first, regardless of other sort options
+        query = query.order('available', { ascending: false })
 
-      switch (sortBy) {
-        case 'title-az': query = query.order('title', { ascending: true }); break;
-        case 'title-za': query = query.order('title', { ascending: false }); break;
-        case 'author': query = query.order('author', { ascending: true }); break;
-        case 'available': query = query.order('created_at', { ascending: false }); break;
-        case 'newest': default: query = query.order('created_at', { ascending: false }); break;
+        switch (sortBy) {
+          case 'title-az': query = query.order('title', { ascending: true }); break;
+          case 'title-za': query = query.order('title', { ascending: false }); break;
+          case 'author': query = query.order('author', { ascending: true }); break;
+          case 'available': query = query.order('created_at', { ascending: false }); break;
+          case 'newest': default: query = query.order('created_at', { ascending: false }); break;
+        }
       }
 
       const from = page * PAGE_SIZE
@@ -64,8 +78,10 @@ export default function PublicCatalogPage() {
       const { data } = await query
 
       if (data) {
-        if (page === 0) setBooks(data)
-        else setBooks(prev => [...prev, ...data])
+        const processedData = sortBy === 'random' ? shuffle(data) : data
+        
+        if (page === 0) setBooks(processedData)
+        else setBooks(prev => [...prev, ...processedData])
         
         setHasMore(data.length === PAGE_SIZE)
       }
@@ -93,6 +109,7 @@ export default function PublicCatalogPage() {
         </div>
         {/* Sort dropdown */}
         <select className="sort-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="random">Random</option>
           <option value="newest">Newest</option>
           <option value="title-az">Title A→Z</option>
           <option value="title-za">Title Z→A</option>
