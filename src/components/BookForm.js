@@ -24,6 +24,7 @@ export default function BookForm({ book = null }) {
   const [author, setAuthor] = useState(book?.author || '')
   const [description, setDescription] = useState(book?.description || '')
   const [seriesName, setSeriesName] = useState(book?.series_name || '')
+  const [isNewSeries, setIsNewSeries] = useState(!book?.series_name)
   const [volumeNumber, setVolumeNumber] = useState(book?.volume_number || '')
   
   // Initialize genre with book's genres or empty array
@@ -412,21 +413,48 @@ export default function BookForm({ book = null }) {
           <div className="book-form-row">
             <div className="form-group">
               <label className="form-label" htmlFor="series-name">Series Name</label>
-              <input 
-                id="series-name" 
-                className="form-input" 
-                type="text" 
-                value={seriesName}
-                onChange={(e) => setSeriesName(e.target.value)} 
-                placeholder="e.g. Naruto" 
-                list="series-list"
-              />
-              <datalist id="series-list">
-                {dbSeries.map(s => <option key={s} value={s} />)}
-              </datalist>
-              {seriesName && dbSeries.length > 0 && !dbSeries.includes(seriesName) && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--rose-gold)', marginTop: '4px' }}>
-                  * New series will be created
+              
+              {dbSeries.length > 0 && !isNewSeries ? (
+                <select 
+                  id="series-name"
+                  className="form-select"
+                  value={seriesName}
+                  onChange={(e) => {
+                    if (e.target.value === 'NEW_SERIES') {
+                      setIsNewSeries(true)
+                      setSeriesName('')
+                    } else {
+                      setSeriesName(e.target.value)
+                    }
+                  }}
+                >
+                  <option value="" disabled>Select a series...</option>
+                  {dbSeries.map(s => <option key={s} value={s}>{s}</option>)}
+                  <option value="NEW_SERIES">+ Create New Series</option>
+                </select>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input 
+                    id="series-name" 
+                    className="form-input" 
+                    type="text" 
+                    value={seriesName}
+                    onChange={(e) => setSeriesName(e.target.value)} 
+                    placeholder="e.g. Naruto" 
+                  />
+                  {dbSeries.length > 0 && (
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary" 
+                      onClick={() => {
+                        setIsNewSeries(false)
+                        setSeriesName(dbSeries[0] || '')
+                      }}
+                      style={{ whiteSpace: 'nowrap' }}
+                    >
+                      Cancel
+                    </button>
+                  )}
                 </div>
               )}
             </div>
