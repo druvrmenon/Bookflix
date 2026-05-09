@@ -151,7 +151,6 @@ export default function CustomerRentalsPage() {
                           ⭐ Rate Book
                         </button>
                       )}
-                    </div>
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                       {new Date(req.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
