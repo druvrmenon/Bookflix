@@ -190,14 +190,6 @@ export default function BookDetailClient({ initialBook, id }) {
       canvas.height = 1920
       const ctx = canvas.getContext('2d')
 
-      ctx.fillStyle = '#1a120c'
-      ctx.fillRect(0, 0, 1080, 1920)
-
-      ctx.fillStyle = '#c9956c'
-      ctx.font = 'bold 50px sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText("Available to rent on BookFlix!", 540, 250)
-
       const loadImg = (src) => new Promise((resolve, reject) => {
         const img = new window.Image()
         img.crossOrigin = 'anonymous'
@@ -206,40 +198,94 @@ export default function BookDetailClient({ initialBook, id }) {
         img.src = src
       })
 
-      if (book.cover_url) {
-        const coverImg = await loadImg(book.cover_url)
-        const coverWidth = 700
-        const coverHeight = 1050
-        const coverX = (1080 - coverWidth) / 2
-        const coverY = 290 
+      // 1. Background
+      ctx.fillStyle = '#1a120c'
+      ctx.fillRect(0, 0, 1080, 1920)
 
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)'
-        ctx.shadowBlur = 50
-        ctx.shadowOffsetX = 0
-        ctx.shadowOffsetY = 20
-        ctx.drawImage(coverImg, coverX, coverY, coverWidth, coverHeight)
-        ctx.shadowColor = 'transparent'
+      if (book.cover_url) {
+        try {
+          const bgImg = await loadImg(book.cover_url)
+          
+          // Draw blurred background
+          ctx.save()
+          // Scale image to cover
+          const scale = Math.max(canvas.width / bgImg.width, canvas.height / bgImg.height)
+          const x = (canvas.width / 2) - (bgImg.width / 2) * scale
+          const y = (canvas.height / 2) - (bgImg.height / 2) * scale
+          
+          ctx.filter = 'blur(60px) brightness(0.4)'
+          ctx.drawImage(bgImg, x, y, bgImg.width * scale, bgImg.height * scale)
+          ctx.restore()
+          
+          // Dark overlay gradient
+          const grad = ctx.createLinearGradient(0, 0, 0, 1920)
+          grad.addColorStop(0, 'rgba(26, 18, 12, 0.3)')
+          grad.addColorStop(0.5, 'rgba(26, 18, 12, 0.1)')
+          grad.addColorStop(1, 'rgba(26, 18, 12, 0.8)')
+          ctx.fillStyle = grad
+          ctx.fillRect(0, 0, 1080, 1920)
+        } catch (e) {
+          console.error("Failed to load background image", e)
+        }
       }
 
-      ctx.fillStyle = '#f9fafb'
-      ctx.font = 'bold 80px sans-serif'
-      const safeTitle = book.title.length > 25 ? book.title.substring(0, 22) + '...' : book.title
+      // 2. Header Text
+      ctx.fillStyle = '#c9956c'
+      ctx.font = '500 42px sans-serif'
+      ctx.textAlign = 'center'
+      ctx.letterSpacing = '2px'
+      ctx.fillText("AVAILABLE TO RENT", 540, 220)
+      
+      // 3. Book Cover
+      if (book.cover_url) {
+        const coverImg = await loadImg(book.cover_url)
+        const coverWidth = 680
+        const coverHeight = 1020
+        const coverX = (1080 - coverWidth) / 2
+        const coverY = 320 
+
+        // Multi-layered soft shadow
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.4)'
+        ctx.shadowBlur = 80
+        ctx.shadowOffsetY = 40
+        ctx.drawImage(coverImg, coverX, coverY, coverWidth, coverHeight)
+        
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)'
+        ctx.shadowBlur = 20
+        ctx.shadowOffsetY = 10
+        ctx.drawImage(coverImg, coverX, coverY, coverWidth, coverHeight)
+        
+        ctx.shadowColor = 'transparent'
+        
+        // Thin accent border
+        ctx.strokeStyle = 'rgba(201, 149, 108, 0.3)'
+        ctx.lineWidth = 2
+        ctx.strokeRect(coverX, coverY, coverWidth, coverHeight)
+      }
+
+      // 4. Book Info
+      ctx.fillStyle = '#ffffff'
+      ctx.font = 'bold 85px sans-serif'
+      const safeTitle = book.title.length > 22 ? book.title.substring(0, 19) + '...' : book.title
       ctx.fillText(safeTitle, 540, 1450)
 
-      ctx.fillStyle = '#a8a29e'
-      ctx.font = '45px sans-serif'
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+      ctx.font = '400 48px sans-serif'
       ctx.fillText(`by ${book.author}`, 540, 1530)
 
+      // 5. Footer / Branding
       try {
         const logoImg = await loadImg(window.location.origin + '/logo.png')
-        const logoHeight = 160
+        const logoHeight = 130
         const logoWidth = logoImg.width * (logoHeight / logoImg.height)
-        ctx.drawImage(logoImg, (1080 - logoWidth) / 2, 1620, logoWidth, logoHeight)
+        ctx.globalAlpha = 0.9
+        ctx.drawImage(logoImg, (1080 - logoWidth) / 2, 1660, logoWidth, logoHeight)
+        ctx.globalAlpha = 1.0
         
-        // Add URL text below logo
         ctx.fillStyle = '#c9956c'
-        ctx.font = '40px sans-serif'
-        ctx.fillText('www.bookflix.in', 540, 1820)
+        ctx.font = '500 36px sans-serif'
+        ctx.letterSpacing = '1px'
+        ctx.fillText('WWW.BOOKFLIX.IN', 540, 1840)
       } catch (e) {
         console.error("Failed to load logo", e)
       }
