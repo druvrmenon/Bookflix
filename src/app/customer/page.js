@@ -1,7 +1,7 @@
 // Customer catalog page — browse all books with search, filters, sort, and wishlist
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import BookCard from '@/components/BookCard'
 import SearchBar from '@/components/SearchBar'
