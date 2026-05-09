@@ -164,6 +164,9 @@ CREATE TABLE IF NOT EXISTS public.rent_requests (
   longitude FLOAT8,
   message TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned')),
+  payment_method TEXT DEFAULT 'cash' CHECK (payment_method IN ('cash', 'upi')),
+  payment_status TEXT DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'submitted', 'verified')),
+  payment_screenshot_url TEXT,
   due_date DATE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );

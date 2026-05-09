@@ -138,6 +138,10 @@ export default function CustomerRentalsPage() {
                       }}>
                         {s.label}
                       </span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                        {req.payment_method === 'upi' ? `UPI (${req.payment_status})` : 'Cash'}
+                      </span>
+                    </div>
                       {req.status === 'returned' && !userReviews.includes(req.books?.id) && (
                         <button 
                           className="btn btn-sm" 

@@ -178,7 +178,27 @@ export default function AdminRentRequestsPage() {
                 </div>
               </div>
             )}
-            <p style={{ margin: 0 }}>{new Date(req.created_at).toLocaleDateString()}</p>
+            <p style={{ margin: '2px 0' }}>
+              Payment: <strong>{req.payment_method === 'upi' ? 'UPI' : 'Cash'}</strong>
+              {req.payment_method === 'upi' && (
+                <span style={{ 
+                  marginLeft: '6px', 
+                  padding: '2px 6px', 
+                  borderRadius: '4px', 
+                  background: req.payment_status === 'verified' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 191, 36, 0.15)', 
+                  color: req.payment_status === 'verified' ? 'var(--green)' : 'var(--yellow)',
+                  fontSize: '0.7rem'
+                }}>
+                  {req.payment_status}
+                </span>
+              )}
+            </p>
+            {req.payment_screenshot_url && (
+              <a href={req.payment_screenshot_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: '4px', color: 'var(--rose-gold)', textDecoration: 'underline' }}>
+                View Screenshot
+              </a>
+            )}
+            <p style={{ margin: '4px 0 0 0' }}>{new Date(req.created_at).toLocaleDateString()}</p>
           </div>
         </div>
         <div>{getStatusBadge(req.status)}</div>
@@ -206,9 +226,16 @@ export default function AdminRentRequestsPage() {
           </>
         )}
         {req.status === 'approved' && (
-          <button onClick={() => updateStatus(req.id, 'returned')} className="btn btn-sm btn-secondary" style={{ flex: 1, minHeight: '44px' }}>
-            Mark Returned
-          </button>
+          <>
+            {req.payment_method === 'upi' && req.payment_status !== 'verified' && (
+              <button onClick={() => updateStatus(req.id, 'approved', { payment_status: 'verified' })} className="btn btn-sm btn-secondary" style={{ flex: 1, minHeight: '44px' }}>
+                Verify Payment
+              </button>
+            )}
+            <button onClick={() => updateStatus(req.id, 'returned')} className="btn btn-sm btn-secondary" style={{ flex: 1, minHeight: '44px' }}>
+              Mark Returned
+            </button>
+          </>
         )}
         {(req.status === 'rejected' || req.status === 'returned') && (
           <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', padding: '8px 0', textAlign: 'center', width: '100%' }}>

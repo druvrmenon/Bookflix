@@ -33,6 +33,8 @@ export default function BookDetailClient({ initialBook, id }) {
   const [lat, setLat] = useState(null)
   const [lng, setLng] = useState(null)
   const [showMap, setShowMap] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState('cash')
+  const [screenshotFile, setScreenshotFile] = useState(null)
 
   // Reviews
   const [reviews, setReviews] = useState([])
@@ -97,14 +99,27 @@ export default function BookDetailClient({ initialBook, id }) {
     setLat(null)
     setLng(null)
     setShowMap(false)
+    setPaymentMethod('cash')
+    setScreenshotFile(null)
     setRentModal(true)
   }
 
   const submitRentRequest = async (e) => {
     e.preventDefault()
     if (!contactName.trim() || !phone.trim()) return
+    
+    if (phone.length !== 10) {
+      alert('Please enter a valid 10-digit phone number.')
+      return
+    }
+
     if (!agreeFees || !agreeDamage || !agreeTerms) {
       alert('Please agree to all terms before requesting.')
+      return
+    }
+
+    if (paymentMethod === 'upi' && !screenshotFile) {
+      alert('Please upload your payment screenshot.')
       return
     }
 
@@ -128,6 +143,25 @@ export default function BookDetailClient({ initialBook, id }) {
         return
       }
 
+      let screenshotUrl = null
+      if (paymentMethod === 'upi' && screenshotFile) {
+        const fileExt = screenshotFile.name.split('.').pop()
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
+        const filePath = `payments/${fileName}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('book-covers')
+          .upload(filePath, screenshotFile)
+        
+        if (uploadError) throw uploadError
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('book-covers')
+          .getPublicUrl(filePath)
+          
+        screenshotUrl = publicUrl
+      }
+
       const { error: insertErr } = await supabase
         .from('rent_requests')
         .insert({
@@ -138,6 +172,9 @@ export default function BookDetailClient({ initialBook, id }) {
           address: address.trim() || null,
           latitude: lat,
           longitude: lng,
+          payment_method: paymentMethod,
+          payment_status: paymentMethod === 'upi' ? 'submitted' : 'unpaid',
+          payment_screenshot_url: screenshotUrl
         })
 
       if (insertErr) throw insertErr
@@ -527,7 +564,18 @@ export default function BookDetailClient({ initialBook, id }) {
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label" htmlFor="rent-phone">Phone Number *</label>
-                  <input id="rent-phone" className="form-input" type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="e.g. 9876543210" required />
+                  <input 
+                    id="rent-phone" 
+                    className="form-input" 
+                    type="tel" 
+                    value={phone} 
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '') // Remove non-digits
+                      if (val.length <= 10) setPhone(val)
+                    }} 
+                    placeholder="e.g. 9876543210" 
+                    required 
+                  />
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label" htmlFor="rent-addr">Full Address *</label>
@@ -550,6 +598,34 @@ export default function BookDetailClient({ initialBook, id }) {
                     }} />
                   )}
                 </div>
+
+                <div className="form-group" style={{ margin: '4px 0' }}>
+                  <label className="form-label">Payment Method *</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button type="button" className={`btn btn-sm ${paymentMethod === 'cash' ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1 }} onClick={() => setPaymentMethod('cash')}>Cash on Delivery</button>
+                    <button type="button" className={`btn btn-sm ${paymentMethod === 'upi' ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1 }} onClick={() => setPaymentMethod('upi')}>UPI (₹70)</button>
+                  </div>
+                </div>
+
+                {paymentMethod === 'upi' && (
+                  <div style={{ padding: '16px', background: 'rgba(201, 149, 108, 0.05)', borderRadius: 'var(--radius)', border: '1px solid rgba(201, 149, 108, 0.2)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--gray-50)', textAlign: 'center' }}>
+                      Pay <strong>₹70</strong> (2 weeks advance) to:
+                    </div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--rose-gold)', textAlign: 'center', letterSpacing: '1px' }}>
+                      {process.env.NEXT_PUBLIC_UPI_ID || 'admin@upi'}
+                    </div>
+                    <a href={`upi://pay?pa=${process.env.NEXT_PUBLIC_UPI_ID || 'admin@upi'}&am=70&tn=BookFlix_Rental`} className="btn btn-sm btn-primary" style={{ display: 'flex', justifyContent: 'center' }}>
+                      Pay via UPI App
+                    </a>
+                    
+                    <div style={{ marginTop: '8px' }}>
+                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Upload Screenshot *</label>
+                      <input type="file" accept="image/*" onChange={e => setScreenshotFile(e.target.files[0])} className="form-input" style={{ padding: '8px', fontSize: '0.85rem' }} required={paymentMethod === 'upi'} />
+                      {screenshotFile && <div style={{ fontSize: '0.8rem', color: 'var(--green)', marginTop: '4px' }}>Screenshot attached ✓</div>}
+                    </div>
+                  </div>
+                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
                   <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
