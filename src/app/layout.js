@@ -4,7 +4,7 @@ import { Outfit, Inter } from 'next/font/google'
 import './globals.css'
 import PWARegistration from '@/components/PWARegistration'
 import CookieConsent from '@/components/CookieConsent'
-import { Analytics } from '@vercel/analytics/next'
+import ClientAnalytics from '@/components/ClientAnalytics'
 import PresenceTracker from '@/components/PresenceTracker'
 
 const outfit = Outfit({
@@ -76,7 +76,7 @@ export default function RootLayout({ children }) {
         <CookieConsent />
         <PresenceTracker />
         {children}
-        <Analytics />
+        <ClientAnalytics />
       </body>
     </html>
   )

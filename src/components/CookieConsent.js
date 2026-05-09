@@ -16,7 +16,14 @@ export default function CookieConsent() {
   }, [])
 
   const handleAccept = () => {
-    localStorage.setItem('cookie-consent', 'true')
+    localStorage.setItem('cookie-consent', 'accepted')
+    window.dispatchEvent(new Event('cookie-consent-updated'))
+    setShowBanner(false)
+  }
+
+  const handleReject = () => {
+    localStorage.setItem('cookie-consent', 'rejected')
+    window.dispatchEvent(new Event('cookie-consent-updated'))
     setShowBanner(false)
   }
 
@@ -52,11 +59,18 @@ export default function CookieConsent() {
       
       <div style={{ display: 'flex', gap: '10px' }}>
         <button 
+          onClick={handleReject}
+          className="btn btn-secondary" 
+          style={{ flex: 1, padding: '8px 16px', fontSize: '0.9rem' }}
+        >
+          Reject Non-Essential
+        </button>
+        <button 
           onClick={handleAccept}
           className="btn btn-primary" 
           style={{ flex: 1, padding: '8px 16px', fontSize: '0.9rem' }}
         >
-          I Accept
+          Accept All
         </button>
       </div>
 

@@ -284,3 +284,42 @@ CREATE POLICY "Admins can manage genres" ON public.genres
 ALTER TABLE public.books ADD COLUMN IF NOT EXISTS series_name TEXT DEFAULT NULL;
 ALTER TABLE public.books ADD COLUMN IF NOT EXISTS volume_number INTEGER DEFAULT NULL;
 
+-- ============================================
+-- Announcements / Notifications
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE, -- NULL means ALL users
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view global notifications" ON public.notifications;
+CREATE POLICY "Anyone can view global notifications" ON public.notifications
+  FOR SELECT USING (user_id IS NULL);
+
+DROP POLICY IF EXISTS "Users can view own notifications" ON public.notifications;
+CREATE POLICY "Users can view own notifications" ON public.notifications
+  FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Admins can manage notifications" ON public.notifications;
+CREATE POLICY "Admins can manage notifications" ON public.notifications
+  FOR ALL USING (public.is_admin());
+
+-- Track which user read which global notification
+CREATE TABLE IF NOT EXISTS public.notification_reads (
+  notification_id UUID REFERENCES public.notifications ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (notification_id, user_id)
+);
+ALTER TABLE public.notification_reads ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Users can manage own reads" ON public.notification_reads;
+CREATE POLICY "Users can manage own reads" ON public.notification_reads
+  FOR ALL USING (auth.uid() = user_id);
+
+

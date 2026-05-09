@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import NotificationBell from '@/components/NotificationBell'
 
 export default function Navbar({ role }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -73,11 +74,14 @@ export default function Navbar({ role }) {
         </div>
 
         {/* Actions */}
-        <div className="navbar-actions">
+        <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {user && (
-            <button onClick={handleSignOut} className="btn btn-secondary btn-sm">
-              Sign Out
-            </button>
+            <>
+              <NotificationBell user={user} />
+              <button onClick={handleSignOut} className="btn btn-secondary btn-sm desktop-only">
+                Sign Out
+              </button>
+            </>
           )}
           <button
             className={`hamburger ${menuOpen ? 'open' : ''}`}
