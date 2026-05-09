@@ -21,7 +21,21 @@ export default function AdminDashboard() {
   const fetchBooks = async () => {
     const { data, error } = await supabase
       .from('books').select('*').order('created_at', { ascending: false })
-    if (!error && data) setBooks(data)
+    if (!error && data) {
+      // Sort to group series together
+      data.sort((a, b) => {
+        if (a.series_name && b.series_name) {
+          if (a.series_name === b.series_name) {
+            return (a.volume_number || 0) - (b.volume_number || 0)
+          }
+          return a.series_name.localeCompare(b.series_name)
+        }
+        if (a.series_name) return -1
+        if (b.series_name) return 1
+        return 0 // Keep original created_at ordering for standalone books
+      })
+      setBooks(data)
+    }
     setLoading(false)
   }
 
@@ -154,6 +168,8 @@ export default function AdminDashboard() {
               <thead>
                 <tr>
                   <th>Title</th>
+                  <th>Series</th>
+                  <th>Vol</th>
                   <th>Author</th>
                   <th>Genre</th>
                   <th>Language</th>
@@ -167,6 +183,8 @@ export default function AdminDashboard() {
                 {books.map((book) => (
                   <tr key={book.id}>
                     <td style={{ fontWeight: 600 }}>{book.title}</td>
+                    <td>{book.series_name || '—'}</td>
+                    <td>{book.volume_number || '—'}</td>
                     <td>{book.author}</td>
                     <td>
                       {Array.isArray(book.genre) ? (
@@ -231,6 +249,12 @@ export default function AdminDashboard() {
                     aria-label={`Toggle availability for ${book.title}`}
                   />
                 </div>
+                {book.series_name && (
+                  <div className="admin-card-row">
+                    <span className="admin-card-label">Series</span>
+                    <span>{book.series_name} (Vol. {book.volume_number || '?'})</span>
+                  </div>
+                )}
                 <div className="admin-card-row">
                   <span className="admin-card-label">Genre</span>
                   <div style={{ textAlign: 'right' }}>

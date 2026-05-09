@@ -1729,3 +1729,211 @@ h4 { font-size: 1.1rem; }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ============================================
+   Series Grouping & Expand Row (Netflix Style)
+   ============================================ */
+
+/* Stacked card effect for series */
+.series-card {
+  position: relative;
+  transition: transform var(--transition);
+}
+
+.series-card::before,
+.series-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--brown-600);
+  border-radius: var(--radius) var(--radius) 0 0;
+  border: 1px solid rgba(201, 149, 108, 0.2);
+  z-index: -1;
+  transition: transform var(--transition);
+}
+
+.series-card::before {
+  transform: translate(6px, -6px);
+  z-index: -2;
+  background: var(--brown-500);
+}
+
+.series-card::after {
+  transform: translate(3px, -3px);
+}
+
+.series-card:hover {
+  transform: translate(-3px, 3px);
+}
+
+.series-card:hover::before {
+  transform: translate(9px, -9px);
+}
+
+.series-card:hover::after {
+  transform: translate(6px, -6px);
+}
+
+.badge-series {
+  background: rgba(26, 10, 10, 0.85);
+  color: var(--rose-gold);
+  border: 1px solid var(--rose-gold);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Expand Row Container */
+.series-expand-row {
+  grid-column: 1 / -1;
+  background: var(--brown-800);
+  border-top: 2px solid var(--rose-gold);
+  border-bottom: 1px solid rgba(201, 149, 108, 0.1);
+  margin: 16px -16px;
+  padding: 32px 16px;
+  position: relative;
+  overflow: hidden;
+  animation: expandSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: inset 0 10px 20px -10px rgba(0,0,0,0.5), inset 0 -10px 20px -10px rgba(0,0,0,0.5);
+}
+
+@media (min-width: 768px) {
+  .series-expand-row {
+    margin: 24px -24px;
+    padding: 40px 24px;
+  }
+}
+
+@keyframes expandSlideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 800px;
+  }
+}
+
+.series-expand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.series-expand-title {
+  font-size: 1.5rem;
+  color: var(--gray-50);
+  margin-bottom: 8px;
+}
+
+.series-expand-meta {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.series-expand-close {
+  background: rgba(201, 149, 108, 0.1);
+  color: var(--rose-gold);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.series-expand-close:hover {
+  background: var(--rose-gold);
+  color: var(--brown-900);
+  transform: rotate(90deg);
+}
+
+/* Horizontal scroll for volumes */
+.series-volumes-container {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--brown-500) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.series-volumes-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.series-volumes-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.series-volumes-container::-webkit-scrollbar-thumb {
+  background: var(--brown-500);
+  border-radius: 4px;
+}
+
+.series-volumes-container::-webkit-scrollbar-thumb:hover {
+  background: var(--rose-gold);
+}
+
+/* Volume Card inside Expand Row */
+.volume-card {
+  flex: 0 0 160px;
+  cursor: pointer;
+  transition: transform var(--transition);
+  position: relative;
+  display: block; /* Make it a block-level link */
+}
+
+.volume-card:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.volume-card-cover {
+  width: 100%;
+  aspect-ratio: 2/3;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--brown-700);
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+
+.volume-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.volume-card-info {
+  text-align: center;
+}
+
+.volume-card-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-50);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.volume-card-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}

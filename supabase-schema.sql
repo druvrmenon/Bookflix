@@ -277,3 +277,10 @@ CREATE POLICY "Anyone can view genres" ON public.genres
 DROP POLICY IF EXISTS "Admins can manage genres" ON public.genres;
 CREATE POLICY "Admins can manage genres" ON public.genres
   FOR ALL USING (public.is_admin());
+
+-- ============================================
+-- Series & Manga Volumes
+-- ============================================
+ALTER TABLE public.books ADD COLUMN IF NOT EXISTS series_name TEXT DEFAULT NULL;
+ALTER TABLE public.books ADD COLUMN IF NOT EXISTS volume_number INTEGER DEFAULT NULL;
+

@@ -7,6 +7,8 @@ import BookCard from '@/components/BookCard'
 import SearchBar from '@/components/SearchBar'
 import FilterBar from '@/components/FilterBar'
 import BookLoading from '@/components/BookLoading'
+import SeriesExpandRow from '@/components/SeriesExpandRow'
+import React from 'react'
 
 export default function PublicCatalogPage() {
   const PAGE_SIZE = 20
@@ -20,6 +22,7 @@ export default function PublicCatalogPage() {
   const [genre, setGenre] = useState('')
   const [language, setLanguage] = useState('')
   const [sortBy, setSortBy] = useState('random') // Default to random for discovery
+  const [expandedSeries, setExpandedSeries] = useState(null)
   const supabase = createClient()
 
   // Shuffle helper function
@@ -80,8 +83,53 @@ export default function PublicCatalogPage() {
       if (data) {
         const processedData = sortBy === 'random' ? shuffle(data) : data
         
-        if (page === 0) setBooks(processedData)
-        else setBooks(prev => [...prev, ...processedData])
+        // Group by series
+        const processed = []
+        const seriesMap = new Map()
+
+        processedData.forEach(book => {
+          if (book.series_name) {
+            if (!seriesMap.has(book.series_name)) {
+              const seriesGroup = {
+                id: `series-${book.series_name}`,
+                isSeriesGroup: true,
+                series_name: book.series_name,
+                title: book.series_name,
+                author: book.author,
+                genre: book.genre,
+                language: book.language,
+                cover_url: book.cover_url, // Default to first seen volume's cover
+                volumes: [],
+                created_at: book.created_at
+              }
+              seriesMap.set(book.series_name, seriesGroup)
+              processed.push(seriesGroup)
+            }
+            seriesMap.get(book.series_name).volumes.push(book)
+          } else {
+            processed.push(book)
+          }
+        })
+
+        if (page === 0) setBooks(processed)
+        else {
+          setBooks(prev => {
+            const newBooks = [...prev]
+            processed.forEach(item => {
+              if (item.isSeriesGroup) {
+                const existingIndex = newBooks.findIndex(b => b.isSeriesGroup && b.series_name === item.series_name)
+                if (existingIndex >= 0) {
+                  newBooks[existingIndex].volumes.push(...item.volumes)
+                } else {
+                  newBooks.push(item)
+                }
+              } else {
+                newBooks.push(item)
+              }
+            })
+            return newBooks
+          })
+        }
         
         setHasMore(data.length === PAGE_SIZE)
       }
@@ -146,10 +194,22 @@ export default function PublicCatalogPage() {
         <>
           <div className="book-grid">
             {books.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-              />
+              <React.Fragment key={book.id}>
+                <BookCard
+                  book={book}
+                  onClick={book.isSeriesGroup ? () => {
+                    if (expandedSeries === book.series_name) setExpandedSeries(null)
+                    else setExpandedSeries(book.series_name)
+                  } : null}
+                />
+                {book.isSeriesGroup && expandedSeries === book.series_name && (
+                  <SeriesExpandRow 
+                    seriesName={book.series_name} 
+                    volumes={book.volumes} 
+                    onClose={() => setExpandedSeries(null)} 
+                  />
+                )}
+              </React.Fragment>
             ))}
           </div>
           

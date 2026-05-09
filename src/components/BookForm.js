@@ -23,22 +23,31 @@ export default function BookForm({ book = null }) {
   const [title, setTitle] = useState(book?.title || '')
   const [author, setAuthor] = useState(book?.author || '')
   const [description, setDescription] = useState(book?.description || '')
+  const [seriesName, setSeriesName] = useState(book?.series_name || '')
+  const [volumeNumber, setVolumeNumber] = useState(book?.volume_number || '')
   
   // Initialize genre with book's genres or empty array
   const [genre, setGenre] = useState(Array.isArray(book?.genre) ? book.genre : (book?.genre ? [book.genre] : []))
   const [language, setLanguage] = useState(book?.language || LANGUAGES[0])
 
-  // Fetch genres on mount
+  // Fetch genres and series on mount
+  const [dbSeries, setDbSeries] = useState([])
   useEffect(() => {
-    const fetchGenres = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await supabase.from('genres').select('name').order('name')
-        if (data) setDbGenres(data.map(g => g.name))
+        const { data: genreData } = await supabase.from('genres').select('name').order('name')
+        if (genreData) setDbGenres(genreData.map(g => g.name))
+
+        const { data: seriesData } = await supabase.from('books').select('series_name').not('series_name', 'is', null)
+        if (seriesData) {
+          const uniqueSeries = [...new Set(seriesData.map(s => s.series_name))]
+          setDbSeries(uniqueSeries.sort())
+        }
       } finally {
         setFetchingGenres(false)
       }
     }
-    fetchGenres()
+    fetchData()
   }, []) // Empty dependency array — only run once on mount
 
   // Toggle genre selection (min 1 required)
@@ -309,7 +318,20 @@ export default function BookForm({ book = null }) {
         back_cover_url = await uploadCover(backCoverFile, 'back-')
       }
 
-      const bookData = { title, author, description, genre, language, cover_url, back_cover_url }
+      // Check if genre includes Manga
+      const isManga = Array.isArray(genre) ? genre.includes('Manga') : genre === 'Manga'
+
+      const bookData = { 
+        title, 
+        author, 
+        description, 
+        genre, 
+        language, 
+        cover_url, 
+        back_cover_url,
+        series_name: isManga && seriesName ? seriesName : null,
+        volume_number: isManga && volumeNumber ? parseInt(volumeNumber) : null
+      }
 
       if (isEditing) {
         const { error: updateError } = await supabase
@@ -384,6 +406,39 @@ export default function BookForm({ book = null }) {
           <input id="book-author" className="form-input" type="text" value={author}
             onChange={(e) => setAuthor(e.target.value)} placeholder="Enter author name" required />
         </div>
+
+        {/* Series Fields - Only show if Manga is selected */}
+        {(Array.isArray(genre) ? genre.includes('Manga') : genre === 'Manga') && (
+          <div className="book-form-row">
+            <div className="form-group">
+              <label className="form-label" htmlFor="series-name">Series Name</label>
+              <input 
+                id="series-name" 
+                className="form-input" 
+                type="text" 
+                value={seriesName}
+                onChange={(e) => setSeriesName(e.target.value)} 
+                placeholder="e.g. Naruto" 
+                list="series-list"
+              />
+              <datalist id="series-list">
+                {dbSeries.map(s => <option key={s} value={s} />)}
+              </datalist>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="volume-number">Volume Number</label>
+              <input 
+                id="volume-number" 
+                className="form-input" 
+                type="number" 
+                value={volumeNumber}
+                onChange={(e) => setVolumeNumber(e.target.value)} 
+                placeholder="e.g. 1" 
+                min="1"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Description */}
         <div className="form-group">

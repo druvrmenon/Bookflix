@@ -9,6 +9,7 @@ import FilterBar from '@/components/FilterBar'
 import BookLoading from '@/components/BookLoading'
 import BookSkeleton from '@/components/BookSkeleton'
 import Portal from '@/components/Portal'
+import SeriesExpandRow from '@/components/SeriesExpandRow'
 
 export default function CatalogPage() {
   const PAGE_SIZE = 20
@@ -23,6 +24,10 @@ export default function CatalogPage() {
   const [language, setLanguage] = useState('')
   const [sortBy, setSortBy] = useState('title-az') // Sort option — alphabetical default
   const [showWelcome, setShowWelcome] = useState(false)
+  
+  // Series expand state
+  const [expandedSeries, setExpandedSeries] = useState(null)
+  
   const supabase = createClient()
 
   // Auto-review modal state
@@ -86,8 +91,55 @@ export default function CatalogPage() {
       const { data } = await query
 
       if (data) {
-        if (page === 0) setBooks(data)
-        else setBooks(prev => [...prev, ...data])
+        // Group by series
+        const processed = []
+        const seriesMap = new Map()
+
+        data.forEach(book => {
+          if (book.series_name) {
+            if (!seriesMap.has(book.series_name)) {
+              const seriesGroup = {
+                id: `series-${book.series_name}`,
+                isSeriesGroup: true,
+                series_name: book.series_name,
+                title: book.series_name,
+                author: book.author,
+                genre: book.genre,
+                language: book.language,
+                cover_url: book.cover_url, // Default to first seen volume's cover
+                volumes: [],
+                created_at: book.created_at
+              }
+              seriesMap.set(book.series_name, seriesGroup)
+              processed.push(seriesGroup)
+            }
+            seriesMap.get(book.series_name).volumes.push(book)
+          } else {
+            processed.push(book)
+          }
+        })
+
+        if (page === 0) setBooks(processed)
+        else {
+          // Merge logic for pagination: if appending volumes to existing series, we need more complex logic.
+          // For simplicity here, if it's a series we've seen, append volumes.
+          setBooks(prev => {
+            const newBooks = [...prev]
+            processed.forEach(item => {
+              if (item.isSeriesGroup) {
+                const existingIndex = newBooks.findIndex(b => b.isSeriesGroup && b.series_name === item.series_name)
+                if (existingIndex >= 0) {
+                  newBooks[existingIndex].volumes.push(...item.volumes)
+                } else {
+                  newBooks.push(item)
+                }
+              } else {
+                newBooks.push(item)
+              }
+            })
+            return newBooks
+          })
+        }
         
         setHasMore(data.length === PAGE_SIZE)
       }
@@ -240,10 +292,23 @@ export default function CatalogPage() {
         <>
           <div className="book-grid">
             {books.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-              />
+              <React.Fragment key={book.id}>
+                <BookCard
+                  book={book}
+                  onClick={book.isSeriesGroup ? () => {
+                    if (expandedSeries === book.series_name) setExpandedSeries(null)
+                    else setExpandedSeries(book.series_name)
+                  } : null}
+                />
+                {/* Render Expand Row immediately after the active series card */}
+                {book.isSeriesGroup && expandedSeries === book.series_name && (
+                  <SeriesExpandRow 
+                    seriesName={book.series_name} 
+                    volumes={book.volumes} 
+                    onClose={() => setExpandedSeries(null)} 
+                  />
+                )}
+              </React.Fragment>
             ))}
           </div>
           
