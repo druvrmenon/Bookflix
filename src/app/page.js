@@ -36,6 +36,14 @@ export default async function Home() {
     }
   }
 
+  // Coming soon check — bail early, no need to fetch books
+  const targetDate = '2026-05-12T11:11:00+05:30'
+  const isComingSoon = new Date() < new Date(targetDate)
+
+  if (isComingSoon) {
+    return <ComingSoon targetDate={targetDate} />
+  }
+
   // Fetch recent books for the public catalog preview
   const { data: books } = await supabase
     .from('books')
@@ -43,14 +51,6 @@ export default async function Home() {
     .order('available', { ascending: false }) // Push unavailable down
     .order('created_at', { ascending: false })
     .limit(10) // Show top 10 newest books
-
-  // Coming soon check
-  const targetDate = '2026-05-12T11:11:00+05:30'
-  const isComingSoon = new Date() < new Date(targetDate)
-
-  if (isComingSoon) {
-    return <ComingSoon targetDate={targetDate} />
-  }
 
   // User is NOT logged in — show hero landing page with catalog preview
   return (

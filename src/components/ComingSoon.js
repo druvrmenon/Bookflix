@@ -5,6 +5,13 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+const TimeUnit = ({ value, label }) => (
+  <div className="countdown-unit">
+    <div className="countdown-value">{value.toString().padStart(2, '0')}</div>
+    <div className="countdown-label">{label}</div>
+  </div>
+)
+
 export default function ComingSoon({ targetDate, showSignOut = false }) {
   const router = useRouter()
   const supabase = createClient()
@@ -39,15 +46,8 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.refresh() // Refresh to update auth state across app
+    router.push('/login')
   }
-
-  const TimeUnit = ({ value, label }) => (
-    <div className="countdown-unit">
-      <div className="countdown-value">{value.toString().padStart(2, '0')}</div>
-      <div className="countdown-label">{label}</div>
-    </div>
-  )
 
   return (
     <div className="coming-soon-overlay">
@@ -82,7 +82,7 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .coming-soon-overlay {
           position: fixed;
           inset: 0;
@@ -97,20 +97,15 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
           text-align: center;
           overflow-y: auto;
         }
-
         @media (max-height: 700px) {
-          .coming-soon-overlay {
-            justify-content: flex-start;
-          }
+          .coming-soon-overlay { justify-content: flex-start; }
         }
-
         .coming-soon-content {
           max-width: 600px;
           width: 100%;
-          animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          animation: csSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
           padding: 20px 0;
         }
-
         .coming-soon-title {
           font-size: clamp(1.75rem, 8vw, 3rem);
           margin-bottom: 12px;
@@ -119,39 +114,25 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
           -webkit-text-fill-color: transparent;
           background-clip: text;
         }
-
         .coming-soon-subtitle {
           color: var(--text-muted);
           font-size: 1rem;
           margin-bottom: 32px;
           line-height: 1.5;
         }
-
         @media (max-width: 480px) {
-          .coming-soon-subtitle {
-            font-size: 0.9rem;
-            margin-bottom: 24px;
-          }
-          .loading-logo-wrap {
-            margin-bottom: 24px !important;
-          }
+          .coming-soon-subtitle { font-size: 0.9rem; margin-bottom: 24px; }
         }
-
         .countdown-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 12px;
           margin-bottom: 32px;
         }
-
         @media (max-width: 480px) {
-          .countdown-grid {
-            gap: 8px;
-            margin-bottom: 24px;
-          }
+          .countdown-grid { gap: 8px; margin-bottom: 24px; }
         }
-
-        :global(.countdown-unit) {
+        .countdown-unit {
           background: var(--bg-card);
           border: 1px solid rgba(201, 149, 108, 0.2);
           border-radius: var(--radius-lg);
@@ -160,13 +141,8 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
           -webkit-backdrop-filter: blur(12px);
           transition: transform 0.3s ease;
         }
-
-        :global(.countdown-unit:hover) {
-          transform: translateY(-4px);
-          border-color: var(--rose-gold);
-        }
-
-        :global(.countdown-value) {
+        .countdown-unit:hover { transform: translateY(-4px); border-color: var(--rose-gold); }
+        .countdown-value {
           font-family: var(--font-outfit), sans-serif;
           font-size: clamp(1.5rem, 5vw, 2.5rem);
           font-weight: 800;
@@ -174,15 +150,13 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
           line-height: 1;
           margin-bottom: 4px;
         }
-
-        :global(.countdown-label) {
+        .countdown-label {
           font-size: 0.7rem;
           text-transform: uppercase;
           letter-spacing: 0.1em;
           color: var(--text-dim);
           font-weight: 600;
         }
-
         .coming-soon-footer {
           font-size: 0.9rem;
           color: var(--rose-gold);
@@ -190,8 +164,7 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
           opacity: 0.8;
           text-transform: uppercase;
         }
-
-        @keyframes slideUp {
+        @keyframes csSlideUp {
           from { opacity: 0; transform: translateY(30px); }
           to { opacity: 1; transform: translateY(0); }
         }
