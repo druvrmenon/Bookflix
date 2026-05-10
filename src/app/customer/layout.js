@@ -33,6 +33,10 @@ export default async function CustomerLayout({ children }) {
   const isComingSoon = new Date() < new Date(targetDate)
   const shouldBlock = isComingSoon && !isAdmin
 
+  if (shouldBlock) {
+    return <ComingSoon targetDate={targetDate} showSignOut={true} />
+  }
+
   return (
     // Flex column layout ensures footer sticks to bottom
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
@@ -41,7 +45,7 @@ export default async function CustomerLayout({ children }) {
       {/* Page content — grows to fill space */}
       <main className="page" style={{ flex: 1 }}>
         <div className="container">
-          {shouldBlock ? <ComingSoon targetDate={targetDate} showSignOut={true} /> : children}
+          {children}
         </div>
       </main>
       {/* Footer at bottom */}

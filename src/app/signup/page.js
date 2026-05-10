@@ -53,10 +53,13 @@ export default function SignUpPage() {
   const targetDate = '2026-05-12T11:11:00+05:30'
   const isComingSoon = new Date() < new Date(targetDate)
 
+  if (isComingSoon) {
+    return <ComingSoon targetDate={targetDate} />
+  }
+
   return (
     // Full-page centered auth layout
     <div className="auth-page">
-      {isComingSoon && <ComingSoon targetDate={targetDate} />}
       {/* Auth card with slide-up animation */}
       <div className="auth-card slide-up">
         {/* Logo */}

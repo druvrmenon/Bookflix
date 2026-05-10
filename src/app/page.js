@@ -48,10 +48,13 @@ export default async function Home() {
   const targetDate = '2026-05-12T11:11:00+05:30'
   const isComingSoon = new Date() < new Date(targetDate)
 
+  if (isComingSoon) {
+    return <ComingSoon targetDate={targetDate} />
+  }
+
   // User is NOT logged in — show hero landing page with catalog preview
   return (
     <div className="landing-page fade-in">
-      {isComingSoon && <ComingSoon targetDate={targetDate} />}
       {/* Hero Section */}
       <div className="hero" style={{ minHeight: 'auto', padding: '80px 16px 60px' }}>
         <div className="hero-logo-wrap" style={{ marginBottom: '24px', position: 'relative', display: 'flex', justifyContent: 'center' }}>
