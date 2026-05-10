@@ -6,6 +6,7 @@ import { useState } from 'react' // React state hook
 import { useRouter } from 'next/navigation' // Next.js router for redirects
 import Link from 'next/link' // Next.js optimized link
 import { createClient } from '@/lib/supabase/client' // Browser Supabase client
+import ComingSoon from '@/components/ComingSoon'
 
 export default function SignUpPage() {
   // Form field states
@@ -49,9 +50,13 @@ export default function SignUpPage() {
     }
   }
 
+  const targetDate = '2026-05-12T11:11:00+05:30'
+  const isComingSoon = new Date() < new Date(targetDate)
+
   return (
     // Full-page centered auth layout
     <div className="auth-page">
+      {isComingSoon && <ComingSoon targetDate={targetDate} />}
       {/* Auth card with slide-up animation */}
       <div className="auth-card slide-up">
         {/* Logo */}

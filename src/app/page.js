@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import BookCard from '@/components/BookCard'
+import ComingSoon from '@/components/ComingSoon'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,9 +44,14 @@ export default async function Home() {
     .order('created_at', { ascending: false })
     .limit(10) // Show top 10 newest books
 
+  // Coming soon check
+  const targetDate = '2026-05-12T11:11:00+05:30'
+  const isComingSoon = new Date() < new Date(targetDate)
+
   // User is NOT logged in — show hero landing page with catalog preview
   return (
     <div className="landing-page fade-in">
+      {isComingSoon && <ComingSoon targetDate={targetDate} />}
       {/* Hero Section */}
       <div className="hero" style={{ minHeight: 'auto', padding: '80px 16px 60px' }}>
         <div className="hero-logo-wrap" style={{ marginBottom: '24px', position: 'relative', display: 'flex', justifyContent: 'center' }}>

@@ -10,7 +10,6 @@ import BookLoading from '@/components/BookLoading'
 import BookSkeleton from '@/components/BookSkeleton'
 import Portal from '@/components/Portal'
 import SeriesExpandRow from '@/components/SeriesExpandRow'
-import ComingSoon from '@/components/ComingSoon'
 
 export default function CatalogPage() {
   const PAGE_SIZE = 20
@@ -152,10 +151,6 @@ export default function CatalogPage() {
     fetchBooks()
   }, [page, search, genre, language, sortBy, supabase])
 
-  // Coming soon check
-  const targetDate = '2026-05-12T11:11:00+05:30'
-  const isComingSoon = new Date() < new Date(targetDate)
-
   // Fetch unreviewed returned books on mount
   useEffect(() => {
     const fetchReviews = async () => {
@@ -247,7 +242,6 @@ export default function CatalogPage() {
 
   return (
     <div className="fade-in">
-      {isComingSoon && <ComingSoon targetDate={targetDate} />}
       <div className="page-header">
         <h1 className="page-title">Book Catalog</h1>
         <p className="page-subtitle">Discover your next great read</p>

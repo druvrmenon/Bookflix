@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import Navbar from '@/components/Navbar' // Shared navigation bar
 import Footer from '@/components/Footer' // Site footer
+import ComingSoon from '@/components/ComingSoon'
 
 // SEO metadata for customer pages
 export const metadata = {
@@ -23,6 +24,15 @@ export default async function CustomerLayout({ children }) {
     redirect('/login')
   }
 
+  // Fetch role to allow admin bypass
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = profile?.role === 'admin'
+
+  // Coming soon check
+  const targetDate = '2026-05-12T11:11:00+05:30'
+  const isComingSoon = new Date() < new Date(targetDate)
+  const shouldBlock = isComingSoon && !isAdmin
+
   return (
     // Flex column layout ensures footer sticks to bottom
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
@@ -31,7 +41,7 @@ export default async function CustomerLayout({ children }) {
       {/* Page content — grows to fill space */}
       <main className="page" style={{ flex: 1 }}>
         <div className="container">
-          {children}
+          {shouldBlock ? <ComingSoon targetDate={targetDate} /> : children}
         </div>
       </main>
       {/* Footer at bottom */}
