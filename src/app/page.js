@@ -53,8 +53,26 @@ export default async function Home() {
     .limit(10) // Show top 10 newest books
 
   // User is NOT logged in — show hero landing page with catalog preview
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'BookFlix',
+    url: 'https://bookflix.in',
+    logo: 'https://bookflix.in/logo.png',
+    description: "Kerala's curated online book rental platform. Rent Malayalam and English books.",
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer service',
+      availableLanguage: ['English', 'Malayalam'],
+    },
+  }
+
   return (
     <div className="landing-page fade-in">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero Section */}
       <div className="hero" style={{ minHeight: 'auto', padding: '80px 16px 60px' }}>
         <div className="hero-logo-wrap" style={{ marginBottom: '24px', position: 'relative', display: 'flex', justifyContent: 'center' }}>
