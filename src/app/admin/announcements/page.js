@@ -79,8 +79,8 @@ export default function AdminAnnouncements() {
         {/* Send Form */}
         <div className="card">
           <h2 style={{ marginBottom: '16px', color: 'var(--gray-50)', fontSize: '1.2rem' }}>New Announcement</h2>
-          <form onSubmit={handleSend}>
-            {successMsg && <div style={{ color: 'var(--green)', marginBottom: '16px', background: 'rgba(74, 222, 128, 0.1)', padding: '10px', borderRadius: '4px' }}>{successMsg}</div>}
+          <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {successMsg && <div style={{ color: 'var(--green)', background: 'rgba(74, 222, 128, 0.1)', padding: '10px', borderRadius: '4px' }}>{successMsg}</div>}
             
             <div className="form-group">
               <label className="form-label">Recipient</label>

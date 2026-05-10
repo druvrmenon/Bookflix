@@ -54,13 +54,19 @@ export const metadata = {
     description: 'Browse, discover and rent books from our curated catalog.',
     images: ['/og-image.png'],
   },
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
-  themeColor: '#1a0a0a',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'BookFlix',
   },
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#1a0a0a',
 }
 
 export default function RootLayout({ children }) {

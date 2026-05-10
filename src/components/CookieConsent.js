@@ -30,7 +30,7 @@ export default function CookieConsent() {
   if (!showBanner) return null
 
   return (
-    <div style={{
+    <div className="cookie-consent-container" style={{
       position: 'fixed',
       bottom: '24px',
       left: '24px',
@@ -80,7 +80,7 @@ export default function CookieConsent() {
           to { transform: translateY(0); opacity: 1; }
         }
         @media (max-width: 640px) {
-          div {
+          .cookie-consent-container {
             left: 16px !important;
             right: 16px !important;
             bottom: 16px !important;

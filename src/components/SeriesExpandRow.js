@@ -57,7 +57,7 @@ export default function SeriesExpandRow({ seriesName, volumes, onClose, basePath
             </div>
             <div className="volume-card-info">
               <div className="volume-card-title">Vol. {book.volume_number || '?'}</div>
-              <span className={`volume-card-badge ${book.available ? 'badge-available' : 'badge-unavailable'}`} style={{ border: 'none', background: 'transparent', padding: 0 }}>
+              <span className={`volume-card-badge ${book.available ? 'badge-available' : 'badge-unavailable'}`}>
                 {book.available ? 'Available' : 'Out of Stock'}
               </span>
             </div>
