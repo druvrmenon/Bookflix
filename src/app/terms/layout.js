@@ -2,8 +2,9 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
 export const metadata = {
-  title: 'Terms and Conditions — BookFlix',
-  description: 'Terms and Conditions for BookFlix personal book rental platform.',
+  title: 'Terms and Conditions',
+  description: 'Read the Terms and Conditions for BookFlix — Kerala\'s personal book rental platform. Rental policies, fees, and user responsibilities.',
+  alternates: { canonical: 'https://bookflix.in/terms' },
 }
 
 export default function TermsLayout({ children }) {
