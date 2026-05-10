@@ -22,6 +22,16 @@ export default function Navbar({ role }) {
     getUser()
   }, [])
 
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => { document.body.style.overflow = 'unset' }
+  }, [menuOpen])
+
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/login')

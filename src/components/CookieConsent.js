@@ -32,7 +32,7 @@ export default function CookieConsent() {
   return (
     <div className="cookie-consent-container" style={{
       position: 'fixed',
-      bottom: '24px',
+      bottom: 'calc(24px + env(safe-area-inset-bottom))',
       left: '24px',
       right: '24px',
       maxWidth: '500px',
@@ -40,6 +40,7 @@ export default function CookieConsent() {
       border: '1px solid var(--rose-gold)',
       borderRadius: 'var(--radius-lg)',
       padding: '20px',
+      paddingBottom: 'calc(20px + env(safe-area-inset-bottom))',
       boxShadow: 'var(--shadow-lg)',
       zIndex: 1000,
       display: 'flex',
@@ -83,7 +84,7 @@ export default function CookieConsent() {
           .cookie-consent-container {
             left: 16px !important;
             right: 16px !important;
-            bottom: 16px !important;
+            bottom: calc(16px + env(safe-area-inset-bottom)) !important;
           }
         }
       `}</style>

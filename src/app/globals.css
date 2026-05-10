@@ -256,6 +256,8 @@ h4 { font-size: 1.1rem; }
   font-size: 1rem;
   transition: border-color var(--transition), box-shadow var(--transition);
   width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .form-input:focus,
@@ -553,6 +555,9 @@ h4 { font-size: 1.1rem; }
 }
 
 .filter-bar::-webkit-scrollbar { display: none; }
+.filter-bar {
+  -webkit-overflow-scrolling: touch;
+}
 
 .filter-chip {
   flex-shrink: 0;
@@ -667,6 +672,7 @@ h4 { font-size: 1.1rem; }
   overflow-x: auto;
   border-radius: var(--radius-lg);
   border: 1px solid rgba(201, 149, 108, 0.1);
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-table {
@@ -2020,6 +2026,7 @@ h4 { font-size: 1.1rem; }
   z-index: 1000;
   animation: slideDown 0.2s ease-out;
   overflow: hidden;
+  -webkit-backdrop-filter: blur(12px);
 }
 
 @media (max-width: 480px) {
