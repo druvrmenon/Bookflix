@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function PresenceTracker() {
   const pathname = usePathname()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const channelRef = useRef(null)
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export default function PresenceTracker() {
         supabase.removeChannel(channelRef.current)
       }
     }
-  }, [supabase, pathname]) // Re-track on pathname change
+  }, [pathname]) // Re-track on pathname change only
 
   return null // This component doesn't render anything
 }

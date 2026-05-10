@@ -5,6 +5,7 @@
 import { useState } from 'react' // React state hook
 import { useRouter } from 'next/navigation' // Next.js router for redirects
 import Link from 'next/link' // Next.js optimized link
+import Image from 'next/image' // Next.js optimized image
 import { createClient } from '@/lib/supabase/client' // Browser Supabase client
 
 export default function LoginPage() {
@@ -62,7 +63,7 @@ export default function LoginPage() {
       <div className="auth-card slide-up">
         {/* Logo */}
         <div className="auth-logo">
-          <img src="/logo.png" alt="BookFlix Logo" />
+          <Image src="/logo.png" alt="BookFlix Logo" width={180} height={60} priority style={{ height: '60px', width: 'auto' }} />
         </div>
         {/* Heading and subtitle */}
         <h1>Welcome Back</h1>

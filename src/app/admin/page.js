@@ -1,7 +1,7 @@
 // Admin dashboard — manage books with stats, availability toggle, new badge toggle
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Modal from '@/components/Modal'
@@ -17,7 +17,7 @@ export default function AdminDashboard() {
   const [deleteModal, setDeleteModal] = useState(null)
   const [dateModal, setDateModal] = useState(null)
   const [selectedDate, setSelectedDate] = useState('')
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const fetchBooks = async () => {
     const { data, error } = await supabase

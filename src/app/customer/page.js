@@ -28,7 +28,7 @@ export default function CatalogPage() {
   // Series expand state
   const [expandedSeries, setExpandedSeries] = useState(null)
   
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   // Auto-review modal state
   const [autoReviewModalBook, setAutoReviewModalBook] = useState(null)

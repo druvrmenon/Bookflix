@@ -4,6 +4,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function ResetPasswordPage() {
@@ -47,7 +48,7 @@ export default function ResetPasswordPage() {
     <div className="auth-page">
       <div className="auth-card slide-up">
         <div className="auth-logo">
-          <img src="/logo.png" alt="BookFlix Logo" />
+          <Image src="/logo.png" alt="BookFlix Logo" width={180} height={60} priority style={{ height: '60px', width: 'auto' }} />
         </div>
         <h1>Reset Password</h1>
 

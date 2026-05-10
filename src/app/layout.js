@@ -76,6 +76,8 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
+        <link rel="dns-prefetch" href="https://wlwyvbrpatzecobyppgn.supabase.co" />
+        <link rel="preconnect" href="https://wlwyvbrpatzecobyppgn.supabase.co" crossOrigin="anonymous" />
       </head>
       <body>
         <PWARegistration />

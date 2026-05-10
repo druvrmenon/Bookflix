@@ -1,8 +1,9 @@
 // Forgot password page — sends password reset email via Supabase
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 
 export default function ForgotPasswordPage() {
@@ -10,7 +11,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -34,7 +35,7 @@ export default function ForgotPasswordPage() {
     <div className="auth-page">
       <div className="auth-card slide-up">
         <div className="auth-logo">
-          <img src="/logo.png" alt="BookFlix Logo" />
+          <Image src="/logo.png" alt="BookFlix Logo" width={180} height={60} priority style={{ height: '60px', width: 'auto' }} />
         </div>
         <h1>Forgot Password</h1>
 
