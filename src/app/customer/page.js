@@ -10,6 +10,7 @@ import BookLoading from '@/components/BookLoading'
 import BookSkeleton from '@/components/BookSkeleton'
 import Portal from '@/components/Portal'
 import SeriesExpandRow from '@/components/SeriesExpandRow'
+import { useToast } from '@/components/Toast'
 
 export default function CatalogPage() {
   const PAGE_SIZE = 20
@@ -29,6 +30,7 @@ export default function CatalogPage() {
   const [expandedSeries, setExpandedSeries] = useState(null)
   
   const supabase = useMemo(() => createClient(), [])
+  const { error: toastError } = useToast()
 
   // Auto-review modal state
   const [autoReviewModalBook, setAutoReviewModalBook] = useState(null)
@@ -216,7 +218,7 @@ export default function CatalogPage() {
       setReviewText('')
       setReviewRating(5)
     } catch (err) {
-      alert(err.message || 'Failed to submit review')
+      toastError(err.message || 'Failed to submit review')
     } finally {
       setSubmittingReview(false)
     }

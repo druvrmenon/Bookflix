@@ -6,6 +6,7 @@ import PWARegistration from '@/components/PWARegistration'
 import CookieConsent from '@/components/CookieConsent'
 import ClientAnalytics from '@/components/ClientAnalytics'
 import PresenceTracker from '@/components/PresenceTracker'
+import { ToastProvider } from '@/components/Toast'
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -80,11 +81,13 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href="https://wlwyvbrpatzecobyppgn.supabase.co" crossOrigin="anonymous" />
       </head>
       <body>
-        <PWARegistration />
-        <CookieConsent />
-        <PresenceTracker />
-        {children}
-        <ClientAnalytics />
+        <ToastProvider>
+          <PWARegistration />
+          <CookieConsent />
+          <PresenceTracker />
+          {children}
+          <ClientAnalytics />
+        </ToastProvider>
       </body>
     </html>
   )
