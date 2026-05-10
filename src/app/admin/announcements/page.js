@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function AdminAnnouncements() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [users, setUsers] = useState([])
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
@@ -55,8 +55,9 @@ export default function AdminAnnouncements() {
       fetchData() // refresh list
       setTimeout(() => setSuccessMsg(''), 3000)
     } else {
-      console.error(error)
-      alert('Failed to send announcement.')
+      console.error('Failed to send announcement:', error)
+      setSuccessMsg('❌ Failed to send. Check console.')
+      setTimeout(() => setSuccessMsg(''), 3000)
     }
     setSending(false)
   }
