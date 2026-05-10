@@ -13,6 +13,7 @@ import Portal from '@/components/Portal'
 export default function AdminDashboard() {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
   const [deleteModal, setDeleteModal] = useState(null)
   const [dateModal, setDateModal] = useState(null)
   const [selectedDate, setSelectedDate] = useState('')
@@ -45,6 +46,20 @@ export default function AdminDashboard() {
   const totalBooks = books.length
   const availableBooks = books.filter(b => b.available).length
   const outOfStock = totalBooks - availableBooks
+
+  // Filter books based on search
+  const filteredBooks = books.filter(book => {
+    if (!searchQuery) return true
+    const q = searchQuery.toLowerCase()
+    return (
+      book.title?.toLowerCase().includes(q) ||
+      book.series_name?.toLowerCase().includes(q) ||
+      book.author?.toLowerCase().includes(q) ||
+      (Array.isArray(book.genre) 
+        ? book.genre.some(g => g.toLowerCase().includes(q))
+        : book.genre?.toLowerCase().includes(q))
+    )
+  })
 
   // Toggle availability
   const toggleAvailability = async (book) => {
@@ -153,12 +168,35 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {books.length === 0 ? (
+      {/* Search Bar */}
+      <div style={{ margin: '24px 0', display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div className="search-wrapper">
+          <div className="search-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </div>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by title, author, series, or genre..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        {searchQuery && (
+          <button className="btn btn-secondary btn-sm" onClick={() => setSearchQuery('')} style={{ minHeight: '44px', borderRadius: 'var(--radius-full)' }}>
+            Clear
+          </button>
+        )}
+      </div>
+
+      {filteredBooks.length === 0 ? (
         <div className="empty-state">
           <div className="empty-state-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           </div>
-          <div className="empty-state-text">No books yet. Add your first book!</div>
+          <div className="empty-state-text">
+            {searchQuery ? `No results found for "${searchQuery}"` : "No books yet. Add your first book!"}
+          </div>
         </div>
       ) : (
         <>
@@ -180,7 +218,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {books.map((book) => (
+                {filteredBooks.map((book) => (
                   <tr key={book.id}>
                     <td style={{ fontWeight: 600 }}>{book.title}</td>
                     <td>{book.series_name || '—'}</td>
@@ -236,7 +274,7 @@ export default function AdminDashboard() {
 
           {/* Mobile Cards */}
           <div className="admin-card-list">
-            {books.map((book) => (
+            {filteredBooks.map((book) => (
               <div key={book.id} className="card admin-card">
                 <div className="admin-card-header">
                   <div>
