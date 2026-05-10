@@ -72,22 +72,31 @@ export default function ComingSoon({ targetDate }) {
           background: var(--bg);
           background: radial-gradient(circle at center, var(--brown-800) 0%, var(--bg) 100%);
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
           z-index: 9999;
-          padding: 24px;
+          padding: 32px 24px;
           text-align: center;
+          overflow-y: auto;
+        }
+
+        @media (max-height: 700px) {
+          .coming-soon-overlay {
+            justify-content: flex-start;
+          }
         }
 
         .coming-soon-content {
           max-width: 600px;
           width: 100%;
           animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+          padding: 20px 0;
         }
 
         .coming-soon-title {
-          font-size: clamp(2rem, 8vw, 3rem);
-          margin-bottom: 16px;
+          font-size: clamp(1.75rem, 8vw, 3rem);
+          margin-bottom: 12px;
           background: linear-gradient(135deg, var(--gray-50), var(--rose-gold));
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -96,21 +105,32 @@ export default function ComingSoon({ targetDate }) {
 
         .coming-soon-subtitle {
           color: var(--text-muted);
-          font-size: 1.1rem;
-          margin-bottom: 48px;
-          line-height: 1.6;
+          font-size: 1rem;
+          margin-bottom: 32px;
+          line-height: 1.5;
+        }
+
+        @media (max-width: 480px) {
+          .coming-soon-subtitle {
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+          }
+          .loading-logo-wrap {
+            margin-bottom: 24px !important;
+          }
         }
 
         .countdown-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
           gap: 12px;
-          margin-bottom: 48px;
+          margin-bottom: 32px;
         }
 
         @media (max-width: 480px) {
           .countdown-grid {
             gap: 8px;
+            margin-bottom: 24px;
           }
         }
 
