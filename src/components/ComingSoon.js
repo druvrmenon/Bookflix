@@ -2,8 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
-export default function ComingSoon({ targetDate }) {
+export default function ComingSoon({ targetDate, showSignOut = false }) {
+  const router = useRouter()
+  const supabase = createClient()
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -32,6 +36,11 @@ export default function ComingSoon({ targetDate }) {
 
     return () => clearInterval(timer)
   }, [targetDate])
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.refresh() // Refresh to update auth state across app
+  }
 
   const TimeUnit = ({ value, label }) => (
     <div className="countdown-unit">
@@ -63,6 +72,14 @@ export default function ComingSoon({ targetDate }) {
         <div className="coming-soon-footer">
           May 12, 2026 • 11:11 AM
         </div>
+
+        {showSignOut && (
+          <div style={{ marginTop: '32px' }}>
+            <button onClick={handleSignOut} className="btn btn-secondary btn-sm" style={{ opacity: 0.7 }}>
+              Sign Out
+            </button>
+          </div>
+        )}
       </div>
 
       <style jsx>{`

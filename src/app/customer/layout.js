@@ -41,7 +41,7 @@ export default async function CustomerLayout({ children }) {
       {/* Page content — grows to fill space */}
       <main className="page" style={{ flex: 1 }}>
         <div className="container">
-          {shouldBlock ? <ComingSoon targetDate={targetDate} /> : children}
+          {shouldBlock ? <ComingSoon targetDate={targetDate} showSignOut={true} /> : children}
         </div>
       </main>
       {/* Footer at bottom */}
