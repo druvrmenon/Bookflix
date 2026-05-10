@@ -43,7 +43,7 @@ export default function ComingSoon({ targetDate }) {
   return (
     <div className="coming-soon-overlay">
       <div className="coming-soon-content">
-        <div className="loading-logo-wrap" style={{ marginBottom: '32px' }}>
+        <div className="loading-logo-wrap" style={{ marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
           <Image src="/logo.png" alt="BookFlix" width={180} height={60} priority />
         </div>
         
