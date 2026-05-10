@@ -1,12 +1,5 @@
 // Login page — email/password authentication
-// Uses Supabase auth, fetches user role, and redirects to correct dashboard
 'use client'
-
-export const metadata = {
-  title: 'Sign In',
-  description: 'Sign in to your BookFlix account.',
-  robots: { index: false, follow: false },
-}
 
 
 import { useState } from 'react' // React state hook

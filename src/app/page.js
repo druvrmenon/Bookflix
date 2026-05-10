@@ -87,7 +87,7 @@ export default async function Home() {
         </div>
         <h1>BookFlix — Your Next Great Read Awaits</h1>
         <p className="hero-subtitle">
-          Discover and rent from OUR curated collection of books.
+          Discover and rent from our curated collection of books.
           Fiction, non-fiction, Malayalam and English — all in one place.
         </p>
         <div className="hero-cta">

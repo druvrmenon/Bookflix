@@ -9,8 +9,9 @@ import ComingSoon from '@/components/ComingSoon'
 
 // SEO metadata for customer pages
 export const metadata = {
-  title: 'Book Catalog — BookFlix',
+  title: 'Book Catalog',
   description: 'Browse and rent books from our curated catalog. Fiction, non-fiction, Malayalam and English titles.',
+  robots: { index: false, follow: false },
 }
 
 export default async function CustomerLayout({ children }) {

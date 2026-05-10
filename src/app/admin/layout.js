@@ -9,8 +9,9 @@ import AdminNotificationListener from '@/components/AdminNotificationListener'
 
 // SEO metadata for admin pages
 export const metadata = {
-  title: 'Admin Dashboard — BookFlix',
+  title: 'Admin Dashboard',
   description: 'Manage books, availability, and catalog.',
+  robots: { index: false, follow: false },
 }
 
 export default async function AdminLayout({ children }) {
