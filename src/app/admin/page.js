@@ -205,6 +205,7 @@ export default function AdminDashboard() {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th>Cover</th>
                   <th>Title</th>
                   <th>Series</th>
                   <th>Vol</th>
@@ -220,6 +221,15 @@ export default function AdminDashboard() {
               <tbody>
                 {filteredBooks.map((book) => (
                   <tr key={book.id}>
+                    <td>
+                      <div style={{ width: '40px', height: '60px', borderRadius: '4px', overflow: 'hidden', background: 'var(--brown-700)' }}>
+                        {book.cover_url ? (
+                          <img src={book.cover_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', fontSize: '0.6rem' }}>NO IMG</div>
+                        )}
+                      </div>
+                    </td>
                     <td style={{ fontWeight: 600 }}>{book.title}</td>
                     <td>{book.series_name || '—'}</td>
                     <td>{book.volume_number || '—'}</td>
@@ -276,16 +286,30 @@ export default function AdminDashboard() {
           <div className="admin-card-list">
             {filteredBooks.map((book) => (
               <div key={book.id} className="card admin-card">
-                <div className="admin-card-header">
-                  <div>
-                    <div className="admin-card-title">{book.title}</div>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>by {book.author}</div>
+                <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+                  <div style={{ width: '80px', height: '120px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: 'var(--brown-700)', flexShrink: 0 }}>
+                    {book.cover_url ? (
+                      <img src={book.cover_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-dim)', fontSize: '0.7rem' }}>NO IMAGE</div>
+                    )}
                   </div>
-                  <button
-                    className={`toggle ${book.available ? 'active' : ''}`}
-                    onClick={() => toggleAvailability(book)}
-                    aria-label={`Toggle availability for ${book.title}`}
-                  />
+                  <div style={{ flex: 1 }}>
+                    <div className="admin-card-header" style={{ marginBottom: '8px', padding: 0 }}>
+                      <div>
+                        <div className="admin-card-title">{book.title}</div>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>by {book.author}</div>
+                      </div>
+                      <button
+                        className={`toggle ${book.available ? 'active' : ''}`}
+                        onClick={() => toggleAvailability(book)}
+                        aria-label={`Toggle availability for ${book.title}`}
+                      />
+                    </div>
+                    <div className={`badge ${book.available ? 'badge-available' : 'badge-unavailable'}`} style={{ fontSize: '0.7rem' }}>
+                      {book.available ? 'Available' : 'Out of Stock'}
+                    </div>
+                  </div>
                 </div>
                 {book.series_name && (
                   <div className="admin-card-row">
@@ -304,12 +328,6 @@ export default function AdminDashboard() {
                 <div className="admin-card-row">
                   <span className="admin-card-label">Language</span>
                   <span>{book.language}</span>
-                </div>
-                <div className="admin-card-row">
-                  <span className="admin-card-label">Status</span>
-                  <span className={`badge ${book.available ? 'badge-available' : 'badge-unavailable'}`}>
-                    {book.available ? 'Available' : 'Out of Stock'}
-                  </span>
                 </div>
                 <div className="admin-card-row">
                   <span className="admin-card-label">NEW Badge</span>
