@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import confetti from 'canvas-confetti'
 
@@ -24,12 +23,13 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
   const [isLive, setIsLive] = useState(false)
   const hasTriggeredRef = useRef(false)
 
-  // Confetti burst — only fires once
+  // Confetti burst — only fires once, then reloads the page so the server
+  // drops the coming-soon block and serves the real content
   const triggerConfetti = () => {
     if (hasTriggeredRef.current) return
     hasTriggeredRef.current = true
 
-    const duration = 4000
+    const duration = 3500
     const animationEnd = Date.now() + duration
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 }
     const randomInRange = (min, max) => Math.random() * (max - min) + min
@@ -42,6 +42,11 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } })
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } })
     }, 250)
+
+    // Reload after confetti so the server re-evaluates isComingSoon = false
+    setTimeout(() => {
+      window.location.reload()
+    }, 4000)
   }
 
   useEffect(() => {
@@ -87,23 +92,14 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
         </div>
 
         {isLive ? (
-          /* ── We're Live state ── */
+          /* —— We're Live state: briefly shown during confetti, then page reloads —— */
           <div className="cs-live-state">
-            <div className="cs-live-badge">🎉 We're Live!</div>
+            <div className="cs-live-badge">🎉 We&apos;re Live!</div>
             <h1 className="coming-soon-title" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)' }}>
               BookFlix is Now Open!
             </h1>
-            <p className="coming-soon-subtitle">
-              The wait is over. Welcome to BookFlix — your curated book rental platform.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
-              <Link href="/signup" className="btn btn-primary">
-                Get Started →
-              </Link>
-              <Link href="/login" className="btn btn-secondary">
-                Sign In
-              </Link>
-            </div>
+            <p className="coming-soon-subtitle">Taking you in…</p>
+            <div className="cs-spinner" />
           </div>
         ) : (
           /* ── Countdown state ── */
@@ -239,6 +235,18 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
         @keyframes livePulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(201, 149, 108, 0.5); }
           50% { box-shadow: 0 0 0 12px rgba(201, 149, 108, 0); }
+        }
+        .cs-spinner {
+          width: 36px;
+          height: 36px;
+          border: 3px solid rgba(201, 149, 108, 0.2);
+          border-top-color: var(--rose-gold);
+          border-radius: 50%;
+          animation: csSpin 0.8s linear infinite;
+          margin: 8px auto 0;
+        }
+        @keyframes csSpin {
+          to { transform: rotate(360deg); }
         }
         @keyframes csSlideUp {
           from { opacity: 0; transform: translateY(30px); }

@@ -1,6 +1,8 @@
 // Customer layout — wraps all /customer/* pages
 // Provides navbar, footer, and auth guard (redirects unauthenticated users to login)
 
+export const dynamic = 'force-dynamic' // Always re-evaluate coming-soon check on each request
+
 import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import Navbar from '@/components/Navbar' // Shared navigation bar
