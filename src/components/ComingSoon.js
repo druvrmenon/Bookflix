@@ -68,7 +68,14 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
 
       const interval = setInterval(() => {
         const remaining = animationEnd - Date.now()
-        if (remaining <= 0) return clearInterval(interval)
+        if (remaining <= 0) {
+          clearInterval(interval)
+          // Auto-refresh the page so the server serves the real app without the user having to click anything
+          setTimeout(() => {
+            window.location.reload()
+          }, 1000)
+          return
+        }
         const particleCount = 60 * (remaining / duration)
         confetti({ ...defaults, particleCount, origin: { x: rand(0.1, 0.3), y: Math.random() - 0.2 } })
         confetti({ ...defaults, particleCount, origin: { x: rand(0.7, 0.9), y: Math.random() - 0.2 } })
