@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
-import confetti from 'canvas-confetti'
 
 const TimeUnit = ({ value, label }) => (
   <div className="countdown-unit">
@@ -14,70 +13,82 @@ const TimeUnit = ({ value, label }) => (
 
 export default function ComingSoon({ targetDate, showSignOut = false }) {
   const supabase = createClient()
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0
-  })
+  const targetMs = new Date(targetDate).getTime()
+
+  // Initialize with actual remaining time (not zeros)
+  const getTimeLeft = useCallback(() => {
+    const diff = targetMs - Date.now()
+    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+    return {
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((diff % (1000 * 60)) / 1000)
+    }
+  }, [targetMs])
+
+  const [timeLeft, setTimeLeft] = useState(getTimeLeft)
   const [isLive, setIsLive] = useState(false)
-  const hasTriggeredRef = useRef(false)
+  const confettiDoneRef = useRef(false)
 
-  // Confetti burst — only fires once, then reloads the page so the server
-  // drops the coming-soon block and serves the real content
-  const triggerConfetti = () => {
-    if (hasTriggeredRef.current) return
-    hasTriggeredRef.current = true
-
-    const duration = 3500
-    const animationEnd = Date.now() + duration
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 }
-    const randomInRange = (min, max) => Math.random() * (max - min) + min
-
-    const interval = setInterval(() => {
-      const remaining = animationEnd - Date.now()
-      if (remaining <= 0) return clearInterval(interval)
-
-      const particleCount = 60 * (remaining / duration)
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } })
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } })
-    }, 250)
-
-    // Reload after confetti so the server re-evaluates isComingSoon = false
-    setTimeout(() => {
-      window.location.reload()
-    }, 4000)
-  }
-
+  // Countdown timer
   useEffect(() => {
-    const target = new Date(targetDate).getTime()
-
-    const tick = () => {
-      const now = Date.now()
-      const difference = target - now
-
-      if (difference <= 0) {
-        clearInterval(timer)
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-        // Only show live state if the target has genuinely passed
-        if (Date.now() >= target) {
-          setIsLive(true)
-          triggerConfetti()
-        }
-      } else {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((difference % (1000 * 60)) / 1000)
-        })
-      }
+    // If already past target on mount, go live immediately
+    if (Date.now() >= targetMs) {
+      setIsLive(true)
+      return
     }
 
-    const timer = setInterval(tick, 1000)
-    tick() // run immediately
+    const timer = setInterval(() => {
+      const diff = targetMs - Date.now()
+      if (diff <= 0) {
+        clearInterval(timer)
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+        setIsLive(true)
+      } else {
+        setTimeLeft({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((diff % (1000 * 60)) / 1000)
+        })
+      }
+    }, 1000)
+
     return () => clearInterval(timer)
-  }, [targetDate])
+  }, [targetMs])
+
+  // Confetti + redirect — runs once when isLive becomes true
+  useEffect(() => {
+    if (!isLive || confettiDoneRef.current) return
+    confettiDoneRef.current = true
+
+    // Dynamically import confetti to avoid SSR issues
+    import('canvas-confetti').then((mod) => {
+      const confetti = mod.default
+      const duration = 3500
+      const animationEnd = Date.now() + duration
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 }
+      const rand = (min, max) => Math.random() * (max - min) + min
+
+      const interval = setInterval(() => {
+        const remaining = animationEnd - Date.now()
+        if (remaining <= 0) {
+          clearInterval(interval)
+          return
+        }
+        const particleCount = 60 * (remaining / duration)
+        confetti({ ...defaults, particleCount, origin: { x: rand(0.1, 0.3), y: Math.random() - 0.2 } })
+        confetti({ ...defaults, particleCount, origin: { x: rand(0.7, 0.9), y: Math.random() - 0.2 } })
+      }, 250)
+
+      // After confetti, do a full page reload so server re-evaluates
+      // The server's isComingSoon will now be false, so it serves the real page
+      setTimeout(() => {
+        window.location.reload()
+      }, 4500)
+    })
+  }, [isLive])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -92,7 +103,6 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
         </div>
 
         {isLive ? (
-          /* —— We're Live state: briefly shown during confetti, then page reloads —— */
           <div className="cs-live-state">
             <div className="cs-live-badge">🎉 We&apos;re Live!</div>
             <h1 className="coming-soon-title" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)' }}>
@@ -102,7 +112,6 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
             <div className="cs-spinner" />
           </div>
         ) : (
-          /* ── Countdown state ── */
           <>
             <h1 className="coming-soon-title">Exciting Things Coming Soon</h1>
             <p className="coming-soon-subtitle">
