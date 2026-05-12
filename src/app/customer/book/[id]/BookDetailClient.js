@@ -113,6 +113,12 @@ export default function BookDetailClient({ initialBook, id }) {
       return
     }
 
+    if (!lat || !lng) {
+      alert('Please pin your exact drop location on the map.')
+      setShowMap(true)
+      return
+    }
+
     if (!agreeFees || !agreeDamage || !agreeTerms) {
       alert('Please agree to all terms before requesting.')
       return
@@ -586,10 +592,10 @@ export default function BookDetailClient({ initialBook, id }) {
                   <button 
                     type="button" 
                     className="btn btn-sm btn-secondary" 
-                    style={{ width: '100%', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                    style={{ width: '100%', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', border: !lat ? '1px dashed var(--rose-gold)' : undefined }}
                     onClick={() => setShowMap(!showMap)}
                   >
-                    📍 {showMap ? 'Hide Map' : (lat ? 'Location Set ✓' : 'Pin Location on Map (Optional)')}
+                    📍 {showMap ? 'Hide Map' : (lat ? 'Location Set ✓' : 'Pin Location on Map *')}
                   </button>
                   {showMap && (
                     <MapPicker onLocationSelect={(lat, lng) => {
