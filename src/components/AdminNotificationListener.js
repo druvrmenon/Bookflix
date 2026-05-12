@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/Toast'
 
 export default function AdminNotificationListener() {
   const supabase = useMemo(() => createClient(), [])
+  const { info } = useToast()
 
   useEffect(() => {
     // 1. Request browser notification permission on mount
@@ -37,6 +39,9 @@ export default function AdminNotificationListener() {
           ) {
             new Notification(title, { body, icon: '/logo.png' })
           }
+
+          // Also trigger an in-app toast notification so it's impossible to miss
+          info(`📚 ${body}`)
         }
       )
       .subscribe((status) => {
