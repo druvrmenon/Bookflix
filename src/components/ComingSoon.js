@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import confetti from 'canvas-confetti'
 
 const TimeUnit = ({ value, label }) => (
   <div className="countdown-unit">
@@ -21,6 +22,47 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
     minutes: 0,
     seconds: 0
   })
+  const [hasFinished, setHasFinished] = useState(false)
+  const hasTriggeredRef = useRef(false)
+
+  useEffect(() => {
+    // Only run confetti and redirect once
+    if (hasFinished && !hasTriggeredRef.current) {
+      hasTriggeredRef.current = true;
+
+      // Start confetti
+      const duration = 3000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+
+      const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+      const interval = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, { 
+          particleCount, 
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } 
+        }));
+        confetti(Object.assign({}, defaults, { 
+          particleCount, 
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
+        }));
+      }, 250);
+
+      // Redirect after confetti
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 3500);
+
+      return () => clearInterval(interval);
+    }
+  }, [hasFinished]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,6 +73,7 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
       if (difference <= 0) {
         clearInterval(timer)
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+        setHasFinished(true)
       } else {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
