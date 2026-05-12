@@ -2,6 +2,6 @@
 // NOTE: Set to the actual launch time
 export const LAUNCH_DATE = '2026-05-12T11:11:00+05:30'
 
-// Dynamically checks if the current time is past the launch date.
-// Returns true after 11:11 AM, false before.
-export const hasLaunched = () => new Date() >= new Date(LAUNCH_DATE)
+// Kill switch — set to true to permanently disable the Coming Soon overlay
+// (overrides the date check, useful after launch)
+export const LAUNCHED = false
