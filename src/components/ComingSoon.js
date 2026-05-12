@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import confetti from 'canvas-confetti'
 
@@ -14,7 +14,6 @@ const TimeUnit = ({ value, label }) => (
 )
 
 export default function ComingSoon({ targetDate, showSignOut = false }) {
-  const router = useRouter()
   const supabase = createClient()
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -22,58 +21,44 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
     minutes: 0,
     seconds: 0
   })
-  const [hasFinished, setHasFinished] = useState(false)
+  const [isLive, setIsLive] = useState(false)
   const hasTriggeredRef = useRef(false)
 
-  useEffect(() => {
-    // Only run confetti and redirect once
-    if (hasFinished && !hasTriggeredRef.current) {
-      hasTriggeredRef.current = true;
+  // Confetti burst — only fires once
+  const triggerConfetti = () => {
+    if (hasTriggeredRef.current) return
+    hasTriggeredRef.current = true
 
-      // Start confetti
-      const duration = 3000;
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
+    const duration = 4000
+    const animationEnd = Date.now() + duration
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 }
+    const randomInRange = (min, max) => Math.random() * (max - min) + min
 
-      const randomInRange = (min, max) => Math.random() * (max - min) + min;
+    const interval = setInterval(() => {
+      const remaining = animationEnd - Date.now()
+      if (remaining <= 0) return clearInterval(interval)
 
-      const interval = setInterval(function() {
-        const timeLeft = animationEnd - Date.now();
-
-        if (timeLeft <= 0) {
-          return clearInterval(interval);
-        }
-
-        const particleCount = 50 * (timeLeft / duration);
-        confetti(Object.assign({}, defaults, { 
-          particleCount, 
-          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } 
-        }));
-        confetti(Object.assign({}, defaults, { 
-          particleCount, 
-          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } 
-        }));
-      }, 250);
-
-      // Redirect after confetti
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 3500);
-
-      return () => clearInterval(interval);
-    }
-  }, [hasFinished]);
+      const particleCount = 60 * (remaining / duration)
+      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } })
+      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } })
+    }, 250)
+  }
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date().getTime()
-      const target = new Date(targetDate).getTime()
+    const target = new Date(targetDate).getTime()
+
+    const tick = () => {
+      const now = Date.now()
       const difference = target - now
 
       if (difference <= 0) {
         clearInterval(timer)
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-        setHasFinished(true)
+        // Only show live state if the target has genuinely passed
+        if (Date.now() >= target) {
+          setIsLive(true)
+          triggerConfetti()
+        }
       } else {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -82,14 +67,16 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
           seconds: Math.floor((difference % (1000 * 60)) / 1000)
         })
       }
-    }, 1000)
+    }
 
+    const timer = setInterval(tick, 1000)
+    tick() // run immediately
     return () => clearInterval(timer)
   }, [targetDate])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    router.push('/login')
+    window.location.href = '/login'
   }
 
   return (
@@ -98,30 +85,54 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
         <div className="loading-logo-wrap" style={{ marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
           <Image src="/logo.png" alt="BookFlix" width={180} height={60} priority />
         </div>
-        
-        <h1 className="coming-soon-title">Exciting Things Coming Soon</h1>
-        <p className="coming-soon-subtitle">
-          We're preparing something special for our readers.
-          Stay tuned, the wait is almost over!
-        </p>
 
-        <div className="countdown-grid">
-          <TimeUnit value={timeLeft.days} label="Days" />
-          <TimeUnit value={timeLeft.hours} label="Hours" />
-          <TimeUnit value={timeLeft.minutes} label="Minutes" />
-          <TimeUnit value={timeLeft.seconds} label="Seconds" />
-        </div>
-
-        <div className="coming-soon-footer">
-          May 12, 2026 • 11:11 AM
-        </div>
-
-        {showSignOut && (
-          <div style={{ marginTop: '32px' }}>
-            <button onClick={handleSignOut} className="btn btn-secondary btn-sm" style={{ opacity: 0.7 }}>
-              Sign Out
-            </button>
+        {isLive ? (
+          /* ── We're Live state ── */
+          <div className="cs-live-state">
+            <div className="cs-live-badge">🎉 We're Live!</div>
+            <h1 className="coming-soon-title" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)' }}>
+              BookFlix is Now Open!
+            </h1>
+            <p className="coming-soon-subtitle">
+              The wait is over. Welcome to BookFlix — your curated book rental platform.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
+              <Link href="/signup" className="btn btn-primary">
+                Get Started →
+              </Link>
+              <Link href="/login" className="btn btn-secondary">
+                Sign In
+              </Link>
+            </div>
           </div>
+        ) : (
+          /* ── Countdown state ── */
+          <>
+            <h1 className="coming-soon-title">Exciting Things Coming Soon</h1>
+            <p className="coming-soon-subtitle">
+              We&apos;re preparing something special for our readers.
+              Stay tuned, the wait is almost over!
+            </p>
+
+            <div className="countdown-grid">
+              <TimeUnit value={timeLeft.days} label="Days" />
+              <TimeUnit value={timeLeft.hours} label="Hours" />
+              <TimeUnit value={timeLeft.minutes} label="Minutes" />
+              <TimeUnit value={timeLeft.seconds} label="Seconds" />
+            </div>
+
+            <div className="coming-soon-footer">
+              May 12, 2026 • 11:11 AM
+            </div>
+
+            {showSignOut && (
+              <div style={{ marginTop: '32px' }}>
+                <button onClick={handleSignOut} className="btn btn-secondary btn-sm" style={{ opacity: 0.7 }}>
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -206,6 +217,28 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
           letter-spacing: 0.2em;
           opacity: 0.8;
           text-transform: uppercase;
+        }
+        /* Live state */
+        .cs-live-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+        }
+        .cs-live-badge {
+          display: inline-block;
+          background: linear-gradient(135deg, var(--rose-gold), #e8b89a);
+          color: var(--bg);
+          font-weight: 700;
+          font-size: 1rem;
+          padding: 8px 20px;
+          border-radius: 999px;
+          letter-spacing: 0.05em;
+          animation: livePulse 1.5s ease-in-out infinite;
+        }
+        @keyframes livePulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(201, 149, 108, 0.5); }
+          50% { box-shadow: 0 0 0 12px rgba(201, 149, 108, 0); }
         }
         @keyframes csSlideUp {
           from { opacity: 0; transform: translateY(30px); }
