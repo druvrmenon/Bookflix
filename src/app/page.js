@@ -8,6 +8,7 @@ import { redirect } from 'next/navigation' // Server-side redirect
 import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import BookCard from '@/components/BookCard'
 import ComingSoon from '@/components/ComingSoon'
+import { LAUNCH_DATE } from '@/lib/config'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,7 +38,7 @@ export default async function Home() {
   }
 
   // Coming soon check — bail early, no need to fetch books
-  const targetDate = '2026-05-12T11:11:00+05:30'
+  const targetDate = LAUNCH_DATE
   const isComingSoon = new Date() < new Date(targetDate)
 
   if (isComingSoon) {

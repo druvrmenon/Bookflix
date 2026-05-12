@@ -8,6 +8,7 @@ import Link from 'next/link' // Next.js optimized link
 import Image from 'next/image' // Next.js optimized image
 import { createClient } from '@/lib/supabase/client' // Browser Supabase client
 import ComingSoon from '@/components/ComingSoon'
+import { LAUNCH_DATE } from '@/lib/config'
 
 export default function SignUpPage() {
   // Form field states
@@ -51,7 +52,7 @@ export default function SignUpPage() {
     }
   }
 
-  const targetDate = '2026-05-12T11:11:00+05:30'
+  const targetDate = LAUNCH_DATE
   const isComingSoon = new Date() < new Date(targetDate)
 
   if (isComingSoon) {
