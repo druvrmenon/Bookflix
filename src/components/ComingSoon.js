@@ -28,16 +28,12 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
   }, [targetMs])
 
   const [timeLeft, setTimeLeft] = useState(getTimeLeft)
-  const [isLive, setIsLive] = useState(false)
+  const [isLive, setIsLive] = useState(() => Date.now() >= targetMs)
   const confettiDoneRef = useRef(false)
 
   // Countdown timer
   useEffect(() => {
-    // If already past target on mount, go live immediately
-    if (Date.now() >= targetMs) {
-      setIsLive(true)
-      return
-    }
+    if (isLive) return // Already live, no need to count
 
     const timer = setInterval(() => {
       const diff = targetMs - Date.now()
@@ -56,38 +52,30 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [targetMs])
+  }, [targetMs, isLive])
 
-  // Confetti + redirect — runs once when isLive becomes true
+  // Confetti — fires once when isLive becomes true
   useEffect(() => {
     if (!isLive || confettiDoneRef.current) return
     confettiDoneRef.current = true
 
-    // Dynamically import confetti to avoid SSR issues
     import('canvas-confetti').then((mod) => {
       const confetti = mod.default
-      const duration = 3500
+      const duration = 4000
       const animationEnd = Date.now() + duration
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 }
       const rand = (min, max) => Math.random() * (max - min) + min
 
       const interval = setInterval(() => {
         const remaining = animationEnd - Date.now()
-        if (remaining <= 0) {
-          clearInterval(interval)
-          return
-        }
+        if (remaining <= 0) return clearInterval(interval)
         const particleCount = 60 * (remaining / duration)
         confetti({ ...defaults, particleCount, origin: { x: rand(0.1, 0.3), y: Math.random() - 0.2 } })
         confetti({ ...defaults, particleCount, origin: { x: rand(0.7, 0.9), y: Math.random() - 0.2 } })
       }, 250)
-
-      // After confetti, do a full page reload so server re-evaluates
-      // The server's isComingSoon will now be false, so it serves the real page
-      setTimeout(() => {
-        window.location.reload()
-      }, 4500)
     })
+
+    // No automatic reload — user clicks a button to navigate
   }, [isLive])
 
   const handleSignOut = async () => {
@@ -103,15 +91,34 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
         </div>
 
         {isLive ? (
+          /* —— We're Live state —— */
           <div className="cs-live-state">
             <div className="cs-live-badge">🎉 We&apos;re Live!</div>
             <h1 className="coming-soon-title" style={{ fontSize: 'clamp(1.5rem, 6vw, 2.5rem)' }}>
               BookFlix is Now Open!
             </h1>
-            <p className="coming-soon-subtitle">Taking you in…</p>
-            <div className="cs-spinner" />
+            <p className="coming-soon-subtitle">
+              The wait is over — welcome to your curated book rental platform.
+            </p>
+            {showSignOut ? (
+              /* Authenticated user (on /customer) */
+              <a href="/customer" className="btn btn-primary">
+                Enter BookFlix →
+              </a>
+            ) : (
+              /* Unauthenticated user (on / or /signup) */
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <a href="/signup" className="btn btn-primary">
+                  Sign Up
+                </a>
+                <a href="/login" className="btn btn-secondary">
+                  Sign In
+                </a>
+              </div>
+            )}
           </div>
         ) : (
+          /* —— Countdown state —— */
           <>
             <h1 className="coming-soon-title">Exciting Things Coming Soon</h1>
             <p className="coming-soon-subtitle">
@@ -228,15 +235,15 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 16px;
+          gap: 20px;
         }
         .cs-live-badge {
           display: inline-block;
           background: linear-gradient(135deg, var(--rose-gold), #e8b89a);
           color: var(--bg);
           font-weight: 700;
-          font-size: 1rem;
-          padding: 8px 20px;
+          font-size: 1.1rem;
+          padding: 10px 24px;
           border-radius: 999px;
           letter-spacing: 0.05em;
           animation: livePulse 1.5s ease-in-out infinite;
@@ -244,18 +251,6 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
         @keyframes livePulse {
           0%, 100% { box-shadow: 0 0 0 0 rgba(201, 149, 108, 0.5); }
           50% { box-shadow: 0 0 0 12px rgba(201, 149, 108, 0); }
-        }
-        .cs-spinner {
-          width: 36px;
-          height: 36px;
-          border: 3px solid rgba(201, 149, 108, 0.2);
-          border-top-color: var(--rose-gold);
-          border-radius: 50%;
-          animation: csSpin 0.8s linear infinite;
-          margin: 8px auto 0;
-        }
-        @keyframes csSpin {
-          to { transform: rotate(360deg); }
         }
         @keyframes csSlideUp {
           from { opacity: 0; transform: translateY(30px); }
