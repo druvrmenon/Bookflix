@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/server' // Server Supabase client
 import Navbar from '@/components/Navbar' // Shared navigation bar
 import Footer from '@/components/Footer' // Site footer
 import ComingSoon from '@/components/ComingSoon'
-import { LAUNCH_DATE, LAUNCHED } from '@/lib/config'
+import { LAUNCH_DATE, hasLaunched } from '@/lib/config'
 
 // SEO metadata for customer pages
 export const metadata = {
@@ -34,7 +34,7 @@ export default async function CustomerLayout({ children }) {
 
   // Coming soon check
   const targetDate = LAUNCH_DATE
-  const isComingSoon = !LAUNCHED && new Date() < new Date(targetDate)
+  const isComingSoon = !hasLaunched()
   const shouldBlock = isComingSoon && !isAdmin
 
   if (shouldBlock) {
