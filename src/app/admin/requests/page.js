@@ -74,7 +74,7 @@ export default function AdminRentRequestsPage() {
       setRequests(requests.map(r => r.id === id ? { ...r, status: newStatus, ...extra } : r))
     } catch (err) {
       console.error(err)
-      setError('Failed to update status.')
+      setError('Failed to update status: ' + (err.message || 'Unknown error'))
     }
   }
 
