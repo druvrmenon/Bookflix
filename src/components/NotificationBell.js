@@ -109,15 +109,22 @@ export default function NotificationBell({ user }) {
     const globalUnread = unread.filter(n => n.user_id === null)
     const personalUnread = unread.filter(n => n.user_id !== null)
 
-    if (globalUnread.length > 0) {
-      await supabase.from('notification_reads').insert(
-        globalUnread.map(n => ({ notification_id: n.id, user_id: user.id }))
-      )
-    }
-    if (personalUnread.length > 0) {
-      await supabase.from('notifications')
-        .update({ is_read: true })
-        .in('id', personalUnread.map(n => n.id))
+    try {
+      if (globalUnread.length > 0) {
+        const { error } = await supabase.from('notification_reads').upsert(
+          globalUnread.map(n => ({ notification_id: n.id, user_id: user.id })),
+          { onConflict: 'notification_id,user_id', ignoreDuplicates: true }
+        )
+        if (error) console.error('Error clearing global notifications:', error)
+      }
+      if (personalUnread.length > 0) {
+        const { error } = await supabase.from('notifications')
+          .update({ is_read: true })
+          .in('id', personalUnread.map(n => n.id))
+        if (error) console.error('Error clearing personal notifications:', error)
+      }
+    } catch (err) {
+      console.error('Failed to clear notifications:', err)
     }
   }
 
