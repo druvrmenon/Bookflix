@@ -43,10 +43,11 @@ export default function CustomerRentalsPage() {
   }, [])
 
   const statusStyle = {
-    pending: { bg: 'rgba(251, 191, 36, 0.12)', color: 'var(--yellow)', label: '⏳ Pending' },
-    approved: { bg: 'var(--green-bg)', color: 'var(--green)', label: '✓ Approved' },
-    rejected: { bg: 'var(--red-bg)', color: 'var(--red)', label: '✕ Rejected' },
-    returned: { bg: 'rgba(201, 149, 108, 0.12)', color: 'var(--rose-gold)', label: '↩ Returned' },
+    pending:   { bg: 'rgba(251, 191, 36, 0.12)',  color: 'var(--yellow)',    label: '⏳ Pending' },
+    approved:  { bg: 'var(--green-bg)',            color: 'var(--green)',     label: '✓ Approved' },
+    delivered: { bg: 'rgba(99, 179, 237, 0.12)',   color: '#63b3ed',          label: '🚚 Delivered' },
+    rejected:  { bg: 'var(--red-bg)',              color: 'var(--red)',       label: '✕ Rejected' },
+    returned:  { bg: 'rgba(201, 149, 108, 0.12)', color: 'var(--rose-gold)', label: '↩ Returned' },
   }
 
   const handleSubmitReview = async (e) => {

@@ -50,13 +50,18 @@ export default function AdminRentRequestsPage() {
 
       if (updateErr) throw updateErr
       
-      // Update book availability if approved or returned
+      // Update book availability if approved/delivered or returned
       const req = requests.find(r => r.id === id)
       if (req && req.book_id) {
         if (newStatus === 'approved') {
           await supabase.from('books').update({ 
             available: false, 
             available_date: extra.due_date || null 
+          }).eq('id', req.book_id)
+        } else if (newStatus === 'delivered') {
+          // Book still rented out — keep unavailable
+          await supabase.from('books').update({ 
+            available: false 
           }).eq('id', req.book_id)
         } else if (newStatus === 'returned') {
           await supabase.from('books').update({ 
@@ -89,10 +94,11 @@ export default function AdminRentRequestsPage() {
 
   const getStatusBadge = (status) => {
     const styles = {
-      pending: { bg: 'rgba(251, 191, 36, 0.12)', color: 'var(--yellow)', border: 'rgba(251, 191, 36, 0.25)' },
-      approved: { bg: 'var(--green-bg)', color: 'var(--green)', border: 'rgba(74, 222, 128, 0.25)' },
-      rejected: { bg: 'var(--red-bg)', color: 'var(--red)', border: 'rgba(248, 113, 113, 0.25)' },
-      returned: { bg: 'rgba(201, 149, 108, 0.12)', color: 'var(--rose-gold)', border: 'rgba(201, 149, 108, 0.25)' },
+      pending:   { bg: 'rgba(251, 191, 36, 0.12)',  color: 'var(--yellow)',    border: 'rgba(251, 191, 36, 0.25)' },
+      approved:  { bg: 'var(--green-bg)',            color: 'var(--green)',     border: 'rgba(74, 222, 128, 0.25)' },
+      delivered: { bg: 'rgba(99, 179, 237, 0.12)',   color: '#63b3ed',          border: 'rgba(99, 179, 237, 0.25)' },
+      rejected:  { bg: 'var(--red-bg)',              color: 'var(--red)',       border: 'rgba(248, 113, 113, 0.25)' },
+      returned:  { bg: 'rgba(201, 149, 108, 0.12)', color: 'var(--rose-gold)', border: 'rgba(201, 149, 108, 0.25)' },
     }
     const s = styles[status] || styles.pending
     return <span className="badge" style={{ backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
@@ -101,12 +107,14 @@ export default function AdminRentRequestsPage() {
   const pendingReqs = requests.filter(r => r.status === 'pending')
   const archivedReqs = requests.filter(r => r.status !== 'pending')
   const approvedReqs = archivedReqs.filter(r => r.status === 'approved')
+  const deliveredReqs = archivedReqs.filter(r => r.status === 'delivered')
   const returnedReqs = archivedReqs.filter(r => r.status === 'returned')
   const rejectedReqs = archivedReqs.filter(r => r.status === 'rejected')
 
   const filteredArchived = (() => {
     let result = archiveFilter === 'all' ? archivedReqs
       : archiveFilter === 'approved' ? approvedReqs
+      : archiveFilter === 'delivered' ? deliveredReqs
       : archiveFilter === 'returned' ? returnedReqs
       : rejectedReqs
     
@@ -232,6 +240,17 @@ export default function AdminRentRequestsPage() {
                 Verify Payment
               </button>
             )}
+            <button
+              onClick={() => updateStatus(req.id, 'delivered')}
+              className="btn btn-sm"
+              style={{ flex: 1, minHeight: '44px', backgroundColor: 'rgba(99, 179, 237, 0.15)', color: '#63b3ed', border: '1px solid rgba(99, 179, 237, 0.3)' }}
+            >
+              Mark Delivered
+            </button>
+          </>
+        )}
+        {req.status === 'delivered' && (
+          <>
             <button onClick={() => updateStatus(req.id, 'returned')} className="btn btn-sm btn-secondary" style={{ flex: 1, minHeight: '44px' }}>
               Mark Returned
             </button>
@@ -345,10 +364,11 @@ export default function AdminRentRequestsPage() {
                   {/* Filter tabs */}
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem', flexWrap: 'wrap' }}>
                     {[
-                      { key: 'all', label: 'All', count: archivedReqs.length, color: 'var(--text-muted)' },
-                      { key: 'approved', label: 'Active', count: approvedReqs.length, color: 'var(--green)' },
-                      { key: 'returned', label: 'Returned', count: returnedReqs.length, color: 'var(--rose-gold)' },
-                      { key: 'rejected', label: 'Rejected', count: rejectedReqs.length, color: 'var(--red)' },
+                      { key: 'all',       label: 'All',       count: archivedReqs.length,  color: 'var(--text-muted)' },
+                      { key: 'approved',  label: 'Active',    count: approvedReqs.length,  color: 'var(--green)' },
+                      { key: 'delivered', label: 'Delivered', count: deliveredReqs.length, color: '#63b3ed' },
+                      { key: 'returned',  label: 'Returned',  count: returnedReqs.length,  color: 'var(--rose-gold)' },
+                      { key: 'rejected',  label: 'Rejected',  count: rejectedReqs.length,  color: 'var(--red)' },
                     ].map(tab => (
                       <button
                         key={tab.key}
