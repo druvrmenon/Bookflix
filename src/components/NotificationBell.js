@@ -98,6 +98,29 @@ export default function NotificationBell({ user }) {
     }
   }
 
+  const clearAll = async () => {
+    const unread = notifications.filter(n => !n.isRead)
+    if (unread.length === 0) return
+
+    // Optimistic update
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+    setUnreadCount(0)
+
+    const globalUnread = unread.filter(n => n.user_id === null)
+    const personalUnread = unread.filter(n => n.user_id !== null)
+
+    if (globalUnread.length > 0) {
+      await supabase.from('notification_reads').insert(
+        globalUnread.map(n => ({ notification_id: n.id, user_id: user.id }))
+      )
+    }
+    if (personalUnread.length > 0) {
+      await supabase.from('notifications')
+        .update({ is_read: true })
+        .in('id', personalUnread.map(n => n.id))
+    }
+  }
+
   return (
     <div className="notification-bell-container" ref={dropdownRef}>
       <button
@@ -116,6 +139,24 @@ export default function NotificationBell({ user }) {
         <div className="notification-dropdown">
           <div className="notification-header">
             <h4>Announcements</h4>
+            {unreadCount > 0 && (
+              <button
+                onClick={clearAll}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--rose-gold)',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontWeight: 600,
+                  opacity: 0.85,
+                }}
+              >
+                Clear all
+              </button>
+            )}
           </div>
           <div className="notification-list">
             {notifications.length === 0 ? (
