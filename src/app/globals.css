@@ -74,6 +74,16 @@
   --nav-height: 64px;
   --container-max: 1200px;
   --touch-min: 48px;
+
+  /* Aliases (used by some pages) */
+  --bg-secondary: var(--brown-800);
+  --border-color: rgba(201, 149, 108, 0.1);
+  --text-primary: var(--gray-50);
+  --text-secondary: var(--text-muted);
+  --radius-md: var(--radius);
+  --success-color: var(--green);
+  --error-color: var(--red);
+  --accent-color: var(--rose-gold);
 }
 
 html {
@@ -1113,17 +1123,7 @@ h4 { font-size: 1.1rem; }
   font-size: 1rem;
 }
 
-/* --- Loading Spinner --- */
-.spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--brown-500);
-  border-top-color: var(--rose-gold);
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
+/* --- Loading (see bottom of file for .spinner) --- */
 .loading-page {
   display: flex;
   align-items: center;
@@ -1163,10 +1163,6 @@ h4 { font-size: 1.1rem; }
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
-}
-
-.fade-in {
-  animation: fadeIn 0.4s ease;
 }
 
 .slide-up {

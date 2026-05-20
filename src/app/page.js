@@ -77,11 +77,11 @@ export default async function Home() {
       {/* Hero Section */}
       <div className="hero" style={{ minHeight: 'auto', padding: '80px 16px 60px' }}>
         <div className="hero-logo-wrap" style={{ marginBottom: '24px', position: 'relative', display: 'flex', justifyContent: 'center' }}>
-          <Image 
-            src="/logo.png" 
-            alt="BookFlix Logo" 
-            width={180} 
-            height={60} 
+          <Image
+            src="/logo.png"
+            alt="BookFlix Logo"
+            width={180}
+            height={60}
             priority
             className="hero-logo-img"
           />
@@ -105,14 +105,14 @@ export default async function Home() {
       <div className="container" style={{ padding: '0 16px 80px', maxWidth: '1200px', margin: '0 auto' }}>
         <div className="book-grid">
           {books?.map((book, index) => (
-            <BookCard 
-              key={book.id} 
-              book={book} 
+            <BookCard
+              key={book.id}
+              book={book}
               priority={index < 4}
             />
           ))}
         </div>
-        
+
         <div style={{ textAlign: 'center', marginTop: '48px' }}>
           <Link href="/browse" className="btn btn-primary" style={{ padding: '14px 32px', fontSize: '1.1rem' }}>
             View Full Catalog & Sign Up to Rent →

@@ -20,7 +20,7 @@ export default function BookDetailClient({ initialBook, id }) {
   const [renting, setRenting] = useState(false)
   const [message, setMessage] = useState('')
   const [showBack, setShowBack] = useState(false)
-  const [sharingThisShit, setSharingThisShit] = useState(false)
+  const [sharingStory, setSharingStory] = useState(false)
 
   // Rent request modal
   const [rentModal, setRentModal] = useState(false)
@@ -225,7 +225,7 @@ export default function BookDetailClient({ initialBook, id }) {
   }
 
   const handleShareStory = async () => {
-    setSharingThisShit(true)
+    setSharingStory(true)
     setMessage('')
     try {
       const canvas = document.createElement('canvas')
@@ -352,11 +352,11 @@ export default function BookDetailClient({ initialBook, id }) {
         URL.revokeObjectURL(url)
         setMessage('Story graphic downloaded! You can now upload it to Instagram.')
       }
-    } catch (fuckinError) {
-      console.error(fuckinError)
+    } catch (shareError) {
+      console.error(shareError)
       setMessage('Failed to generate story image.')
     } finally {
-      setSharingThisShit(false)
+      setSharingStory(false)
     }
   }
 
@@ -469,7 +469,7 @@ export default function BookDetailClient({ initialBook, id }) {
               </button>
             )}
 
-            <button onClick={handleShareStory} className="btn" disabled={sharingThisShit} style={{
+            <button onClick={handleShareStory} className="btn" disabled={sharingStory} style={{
                 width: '100%',
                 maxWidth: '300px',
                 background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
@@ -480,7 +480,7 @@ export default function BookDetailClient({ initialBook, id }) {
                 justifyContent: 'center',
                 gap: '8px'
               }}>
-              {sharingThisShit ? <span className="spinner"></span> : (
+              {sharingStory ? <span className="spinner"></span> : (
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
               )}
               Share to IG Story

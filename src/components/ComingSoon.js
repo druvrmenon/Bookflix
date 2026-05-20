@@ -81,8 +81,6 @@ export default function ComingSoon({ targetDate, showSignOut = false }) {
         confetti({ ...defaults, particleCount, origin: { x: rand(0.7, 0.9), y: Math.random() - 0.2 } })
       }, 250)
     })
-
-    // No automatic reload — user clicks a button to navigate
   }, [isLive])
 
   const handleSignOut = async () => {
