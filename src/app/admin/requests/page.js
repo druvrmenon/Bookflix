@@ -10,6 +10,7 @@ export default function AdminRentRequestsPage() {
   const [error, setError] = useState(null)
   const [archiveOpen, setArchiveOpen] = useState(false)
   const [approveModal, setApproveModal] = useState(null)
+  const [deliverModal, setDeliverModal] = useState(null)
   const [dueDate, setDueDate] = useState('')
   const [archiveFilter, setArchiveFilter] = useState('all')
   const [archiveSearch, setArchiveSearch] = useState('')
@@ -55,13 +56,13 @@ export default function AdminRentRequestsPage() {
       if (req && req.book_id) {
         if (newStatus === 'approved') {
           await supabase.from('books').update({ 
-            available: false, 
-            available_date: extra.due_date || null 
+            available: false,
+            available_date: null
           }).eq('id', req.book_id)
         } else if (newStatus === 'delivered') {
-          // Book still rented out — keep unavailable
           await supabase.from('books').update({ 
-            available: false 
+            available: false,
+            available_date: extra.due_date || null
           }).eq('id', req.book_id)
         } else if (newStatus === 'returned') {
           await supabase.from('books').update({ 
@@ -78,17 +79,21 @@ export default function AdminRentRequestsPage() {
     }
   }
 
-  const handleApprove = (reqId) => {
+  const handleApprove = async (reqId) => {
+    await updateStatus(reqId, 'approved')
+  }
+
+  const handleDeliver = (reqId) => {
     const defaultDate = new Date()
     defaultDate.setDate(defaultDate.getDate() + 14)
     setDueDate(defaultDate.toISOString().split('T')[0])
-    setApproveModal(reqId)
+    setDeliverModal(reqId)
   }
 
-  const confirmApprove = async () => {
+  const confirmDeliver = async () => {
     if (!dueDate) return
-    await updateStatus(approveModal, 'approved', { due_date: dueDate })
-    setApproveModal(null)
+    await updateStatus(deliverModal, 'delivered', { due_date: dueDate })
+    setDeliverModal(null)
     setDueDate('')
   }
 
@@ -212,7 +217,7 @@ export default function AdminRentRequestsPage() {
         <div>{getStatusBadge(req.status)}</div>
       </div>
 
-      {req.status === 'approved' && req.due_date && (
+      {req.status === 'delivered' && req.due_date && (
         <div style={{ padding: '8px 16px', fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(201, 149, 108, 0.1)' }}>
           📅 Return by: <strong style={{ color: new Date(req.due_date) < new Date() ? 'var(--red)' : 'var(--text)' }}>
             {new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -241,7 +246,7 @@ export default function AdminRentRequestsPage() {
               </button>
             )}
             <button
-              onClick={() => updateStatus(req.id, 'delivered')}
+              onClick={() => handleDeliver(req.id)}
               className="btn btn-sm"
               style={{ flex: 1, minHeight: '44px', backgroundColor: 'rgba(99, 179, 237, 0.15)', color: '#63b3ed', border: '1px solid rgba(99, 179, 237, 0.3)' }}
             >
@@ -454,7 +459,7 @@ export default function AdminRentRequestsPage() {
                                   </div>
                                   <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                                     {new Date(req.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                                    {req.status === 'approved' && req.due_date && (
+                                    {req.status === 'delivered' && req.due_date && (
                                       <span style={{ color: new Date(req.due_date) < new Date() ? 'var(--red)' : 'var(--text-muted)' }}>
                                         {' '}· Due {new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                                       </span>
@@ -481,10 +486,10 @@ export default function AdminRentRequestsPage() {
         </>
       )}
 
-      {/* Approve with due date modal */}
-      {approveModal && (
+      {/* Mark Delivered — set due date modal */}
+      {deliverModal && (
         <Portal>
-        <div className="crop-modal" onClick={() => setApproveModal(null)}>
+        <div className="crop-modal" onClick={() => setDeliverModal(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             background: 'var(--brown-800)',
             border: '1px solid rgba(201, 149, 108, 0.15)',
@@ -494,9 +499,9 @@ export default function AdminRentRequestsPage() {
             maxWidth: '380px',
             boxShadow: 'var(--shadow-lg)',
           }}>
-            <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Approve Request</h3>
+            <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Mark as Delivered</h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Set a return date for this rental.
+              Set the return date for this rental.
             </p>
             <div className="form-group" style={{ margin: '0 0 16px 0' }}>
               <label className="form-label" htmlFor="due-date">Return By *</label>
@@ -507,12 +512,12 @@ export default function AdminRentRequestsPage() {
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
-                onClick={() => setApproveModal(null)}>Cancel</button>
+                onClick={() => setDeliverModal(null)}>Cancel</button>
               <button type="button" className="btn btn-sm" style={{
-                flex: 1, backgroundColor: 'rgba(74, 222, 128, 0.15)', color: 'var(--green)',
-                border: '1px solid rgba(74, 222, 128, 0.3)', minHeight: '40px', fontSize: '0.95rem'
-              }} onClick={confirmApprove}>
-                Approve
+                flex: 1, backgroundColor: 'rgba(99, 179, 237, 0.15)', color: '#63b3ed',
+                border: '1px solid rgba(99, 179, 237, 0.3)', minHeight: '40px', fontSize: '0.95rem'
+              }} onClick={confirmDeliver}>
+                Confirm Delivered
               </button>
             </div>
           </div>
