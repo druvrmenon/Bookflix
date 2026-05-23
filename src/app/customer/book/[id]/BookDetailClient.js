@@ -36,6 +36,10 @@ export default function BookDetailClient({ initialBook, id }) {
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [screenshotFile, setScreenshotFile] = useState(null)
 
+  // Queue state for out-of-stock books
+  const [queueCount, setQueueCount] = useState(0)
+  const [alreadyInQueue, setAlreadyInQueue] = useState(false)
+
   // Reviews
   const [reviews, setReviews] = useState([])
   const [userReview, setUserReview] = useState(null)
@@ -81,6 +85,26 @@ export default function BookDetailClient({ initialBook, id }) {
             setCanReview(true)
           }
         }
+      }
+
+      // Fetch pending queue count for this book
+      const { count } = await supabase
+        .from('rent_requests')
+        .select('id', { count: 'exact', head: true })
+        .eq('book_id', id)
+        .eq('status', 'pending')
+      setQueueCount(count || 0)
+
+      // Check if the current user already has a pending request for this book
+      if (user) {
+        const { data: myPending } = await supabase
+          .from('rent_requests')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('book_id', id)
+          .eq('status', 'pending')
+          .limit(1)
+        setAlreadyInQueue(myPending && myPending.length > 0)
       }
 
       setLoading(false)
@@ -185,7 +209,13 @@ export default function BookDetailClient({ initialBook, id }) {
 
       if (insertErr) throw insertErr
       setRentModal(false)
-      setMessage('Rent request sent! The owner will get back to you.')
+      if (!book.available) {
+        setAlreadyInQueue(true)
+        setQueueCount(c => c + 1)
+        setMessage("You've joined the queue! We'll let you know when it's your turn.")
+      } else {
+        setMessage('Rent request sent! The owner will get back to you.')
+      }
     } catch (err) {
       setMessage(err.message || 'Failed to send request')
     } finally {
@@ -447,6 +477,12 @@ export default function BookDetailClient({ initialBook, id }) {
                     Expected back: {new Date(book.available_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </div>
                 )}
+                {/* Queue size indicator */}
+                {queueCount > 0 && (
+                  <div style={{ marginTop: '8px', fontSize: '0.82rem', color: 'var(--text-dim)' }}>
+                    🧑‍🤝‍🧑 {queueCount} {queueCount === 1 ? 'person' : 'people'} waiting in queue
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -463,10 +499,34 @@ export default function BookDetailClient({ initialBook, id }) {
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '24px', alignItems: 'center' }}>
-            {book.available && (
+            {book.available ? (
               <button onClick={openRentModal} className="btn btn-primary" disabled={renting} style={{ width: '100%', maxWidth: '300px' }}>
                 Request to Rent
               </button>
+            ) : (
+              alreadyInQueue ? (
+                <div style={{
+                  width: '100%', maxWidth: '300px',
+                  padding: '12px 20px',
+                  borderRadius: 'var(--radius)',
+                  background: 'rgba(74, 222, 128, 0.08)',
+                  border: '1px solid rgba(74, 222, 128, 0.25)',
+                  color: 'var(--green)',
+                  fontSize: '0.9rem',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                }}>
+                  🔔 You're in the queue
+                </div>
+              ) : (
+                <button onClick={openRentModal} className="btn btn-secondary" disabled={renting} style={{
+                  width: '100%', maxWidth: '300px',
+                  border: '1px solid rgba(201, 149, 108, 0.4)',
+                  color: 'var(--rose-gold)',
+                }}>
+                  🔔 Join Queue
+                </button>
+              )
             )}
 
             <button onClick={handleShareStory} className="btn" disabled={sharingStory} style={{
@@ -561,8 +621,14 @@ export default function BookDetailClient({ initialBook, id }) {
               maxWidth: '400px',
               boxShadow: 'var(--shadow-lg)',
             }}>
-              <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Request to Rent</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>Enter your details so the owner can reach you.</p>
+              <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>
+                {book.available ? 'Request to Rent' : 'Join the Queue'}
+              </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+                {book.available
+                  ? 'Enter your details so the owner can reach you.'
+                  : "We'll notify you when the book is available and approve in queue order."}
+              </p>
               <form onSubmit={submitRentRequest} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div className="form-group" style={{ margin: 0 }}>
                   <label className="form-label" htmlFor="rent-name">Your Name *</label>
