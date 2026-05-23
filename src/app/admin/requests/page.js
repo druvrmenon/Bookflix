@@ -116,22 +116,26 @@ export default function AdminRentRequestsPage() {
   const returnedReqs = archivedReqs.filter(r => r.status === 'returned')
   const rejectedReqs = archivedReqs.filter(r => r.status === 'rejected')
 
+  // Show rejected requests only when the user is searching or grouping by person
+  const showRejected = archiveSearch.trim() !== '' || groupByPerson
+
   const filteredArchived = (() => {
-    let result = archiveFilter === 'all' ? archivedReqs
+    let base = archiveFilter === 'all'
+      ? (showRejected ? archivedReqs : archivedReqs.filter(r => r.status !== 'rejected'))
       : archiveFilter === 'approved' ? approvedReqs
       : archiveFilter === 'delivered' ? deliveredReqs
       : archiveFilter === 'returned' ? returnedReqs
-      : rejectedReqs
-    
+      : rejectedReqs // 'rejected' tab always shows rejected
+
     if (archiveSearch.trim()) {
       const q = archiveSearch.toLowerCase()
-      result = result.filter(r => 
+      base = base.filter(r =>
         (r.contact_name || '').toLowerCase().includes(q) ||
         (r.profiles?.full_name || '').toLowerCase().includes(q) ||
         (r.books?.title || '').toLowerCase().includes(q)
       )
     }
-    return result
+    return base
   })()
 
   // Group by person
