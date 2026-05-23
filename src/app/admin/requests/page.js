@@ -9,7 +9,6 @@ export default function AdminRentRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [archiveOpen, setArchiveOpen] = useState(false)
-  const [approveModal, setApproveModal] = useState(null)
   const [deliverModal, setDeliverModal] = useState(null)
   const [dueDate, setDueDate] = useState('')
   const [archiveFilter, setArchiveFilter] = useState('all')
@@ -50,24 +49,24 @@ export default function AdminRentRequestsPage() {
         .eq('id', id)
 
       if (updateErr) throw updateErr
-      
-      // Update book availability if approved/delivered or returned
+
+      // Update book availability
       const req = requests.find(r => r.id === id)
       if (req && req.book_id) {
         if (newStatus === 'approved') {
-          await supabase.from('books').update({ 
+          await supabase.from('books').update({
             available: false,
             available_date: null
           }).eq('id', req.book_id)
         } else if (newStatus === 'delivered') {
-          await supabase.from('books').update({ 
+          await supabase.from('books').update({
             available: false,
             available_date: extra.due_date || null
           }).eq('id', req.book_id)
         } else if (newStatus === 'returned') {
-          await supabase.from('books').update({ 
-            available: true, 
-            available_date: null 
+          await supabase.from('books').update({
+            available: true,
+            available_date: null
           }).eq('id', req.book_id)
         }
       }
@@ -109,23 +108,22 @@ export default function AdminRentRequestsPage() {
     return <span className="badge" style={{ backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
   }
 
-  const pendingReqs = requests.filter(r => r.status === 'pending')
-  const archivedReqs = requests.filter(r => r.status !== 'pending')
-  const approvedReqs = archivedReqs.filter(r => r.status === 'approved')
-  const deliveredReqs = archivedReqs.filter(r => r.status === 'delivered')
-  const returnedReqs = archivedReqs.filter(r => r.status === 'returned')
-  const rejectedReqs = archivedReqs.filter(r => r.status === 'rejected')
+  // Categorise requests into the four sections
+  const pendingReqs   = requests.filter(r => r.status === 'pending')
+  const approvedReqs  = requests.filter(r => r.status === 'approved')
+  const deliveredReqs = requests.filter(r => r.status === 'delivered')
+  const returnedReqs  = requests.filter(r => r.status === 'returned')
+  const rejectedReqs  = requests.filter(r => r.status === 'rejected')
+  const archivedReqs  = requests.filter(r => r.status === 'returned' || r.status === 'rejected')
 
-  // Show rejected requests only when the user is searching or grouping by person
+  // Archive filter + search (rejected only shown when searching or grouping by person)
   const showRejected = archiveSearch.trim() !== '' || groupByPerson
 
   const filteredArchived = (() => {
     let base = archiveFilter === 'all'
-      ? (showRejected ? archivedReqs : archivedReqs.filter(r => r.status !== 'rejected'))
-      : archiveFilter === 'approved' ? approvedReqs
-      : archiveFilter === 'delivered' ? deliveredReqs
+      ? (showRejected ? archivedReqs : returnedReqs)
       : archiveFilter === 'returned' ? returnedReqs
-      : rejectedReqs // 'rejected' tab always shows rejected
+      : rejectedReqs
 
     if (archiveSearch.trim()) {
       const q = archiveSearch.toLowerCase()
@@ -138,7 +136,6 @@ export default function AdminRentRequestsPage() {
     return base
   })()
 
-  // Group by person
   const groupedByPerson = (() => {
     const groups = {}
     filteredArchived.forEach(req => {
@@ -146,10 +143,28 @@ export default function AdminRentRequestsPage() {
       if (!groups[name]) groups[name] = []
       groups[name].push(req)
     })
-    // Sort groups by name
     return Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0]))
   })()
 
+  // ── Shared section header ───────────────────────────────────────────────────
+  const SectionHeader = ({ icon, title, count, accent }) => (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: '10px',
+      marginBottom: '14px', marginTop: '28px',
+    }}>
+      <span style={{ fontSize: '1.15rem' }}>{icon}</span>
+      <h2 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: accent || 'var(--text)' }}>
+        {title}
+      </h2>
+      <span style={{
+        marginLeft: '4px', padding: '2px 10px', borderRadius: 'var(--radius-full)',
+        background: `${accent}18`, color: accent, fontSize: '0.78rem', fontWeight: 700,
+        border: `1px solid ${accent}35`,
+      }}>{count}</span>
+    </div>
+  )
+
+  // ── Full request card ───────────────────────────────────────────────────────
   const renderCard = (req) => (
     <div key={req.id} className="card" style={{ display: 'flex', flexDirection: 'column', padding: '0', overflow: 'hidden' }}>
       <div style={{ display: 'flex', gap: '12px', padding: '16px' }}>
@@ -172,15 +187,15 @@ export default function AdminRentRequestsPage() {
                 <div style={{ flex: 1 }}>
                   {req.address}
                   {req.latitude && req.longitude && (
-                    <a 
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${req.latitude},${req.longitude}`} 
-                      target="_blank" 
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${req.latitude},${req.longitude}`}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="btn btn-sm"
-                      style={{ 
-                        display: 'inline-flex', 
-                        padding: '2px 8px', 
-                        fontSize: '0.75rem', 
+                      style={{
+                        display: 'inline-flex',
+                        padding: '2px 8px',
+                        fontSize: '0.75rem',
                         marginLeft: '8px',
                         background: 'rgba(201, 149, 108, 0.1)',
                         border: '1px solid var(--rose-gold)',
@@ -198,11 +213,11 @@ export default function AdminRentRequestsPage() {
             <p style={{ margin: '2px 0' }}>
               Payment: <strong>{req.payment_method === 'upi' ? 'UPI' : 'Cash'}</strong>
               {req.payment_method === 'upi' && (
-                <span style={{ 
-                  marginLeft: '6px', 
-                  padding: '2px 6px', 
-                  borderRadius: '4px', 
-                  background: req.payment_status === 'verified' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 191, 36, 0.15)', 
+                <span style={{
+                  marginLeft: '6px',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  background: req.payment_status === 'verified' ? 'rgba(74, 222, 128, 0.15)' : 'rgba(251, 191, 36, 0.15)',
                   color: req.payment_status === 'verified' ? 'var(--green)' : 'var(--yellow)',
                   fontSize: '0.7rem'
                 }}>
@@ -259,11 +274,9 @@ export default function AdminRentRequestsPage() {
           </>
         )}
         {req.status === 'delivered' && (
-          <>
-            <button onClick={() => updateStatus(req.id, 'returned')} className="btn btn-sm btn-secondary" style={{ flex: 1, minHeight: '44px' }}>
-              Mark Returned
-            </button>
-          </>
+          <button onClick={() => updateStatus(req.id, 'returned')} className="btn btn-sm btn-secondary" style={{ flex: 1, minHeight: '44px' }}>
+            Mark Returned
+          </button>
         )}
         {(req.status === 'rejected' || req.status === 'returned') && (
           <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)', padding: '8px 0', textAlign: 'center', width: '100%' }}>
@@ -274,9 +287,15 @@ export default function AdminRentRequestsPage() {
     </div>
   )
 
+  const EmptyState = ({ message }) => (
+    <div className="card" style={{ padding: '1.75rem', textAlign: 'center' }}>
+      <p style={{ color: 'var(--text-muted)', margin: 0 }}>{message}</p>
+    </div>
+  )
+
   return (
     <div className="fade-in">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '8px' }}>
         <div>
           <h1 className="page-title">Rent Requests</h1>
           <p className="page-subtitle">Manage book rental requests from customers.</p>
@@ -297,20 +316,39 @@ export default function AdminRentRequestsPage() {
         </div>
       ) : (
         <>
-          {/* Pending requests */}
+          {/* ── 1. PENDING ─────────────────────────────────────────────── */}
+          <SectionHeader icon="⏳" title="Pending Requests" count={pendingReqs.length} accent="var(--yellow)" />
           {pendingReqs.length > 0 ? (
             <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
               {pendingReqs.map(renderCard)}
             </div>
           ) : (
-            <div className="card" style={{ padding: '2rem', textAlign: 'center', marginBottom: '1rem' }}>
-              <p style={{ color: 'var(--text-muted)', margin: 0 }}>No pending requests 🎉</p>
-            </div>
+            <EmptyState message="No pending requests 🎉" />
           )}
 
-          {/* Archived requests dropdown */}
+          {/* ── 2. TO BE DELIVERED ─────────────────────────────────────── */}
+          {approvedReqs.length > 0 && (
+            <>
+              <SectionHeader icon="📦" title="To Be Delivered" count={approvedReqs.length} accent="var(--green)" />
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+                {approvedReqs.map(renderCard)}
+              </div>
+            </>
+          )}
+
+          {/* ── 3. TO BE RETURNED ──────────────────────────────────────── */}
+          {deliveredReqs.length > 0 && (
+            <>
+              <SectionHeader icon="🔄" title="To Be Returned" count={deliveredReqs.length} accent="#63b3ed" />
+              <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+                {deliveredReqs.map(renderCard)}
+              </div>
+            </>
+          )}
+
+          {/* ── 4. ARCHIVED (returned + rejected) ─────────────────────── */}
           {archivedReqs.length > 0 && (
-            <div style={{ marginTop: '2rem' }}>
+            <div style={{ marginTop: '28px' }}>
               <button
                 type="button"
                 onClick={() => setArchiveOpen(!archiveOpen)}
@@ -330,13 +368,13 @@ export default function AdminRentRequestsPage() {
                   transition: 'all 0.2s',
                 }}
               >
-                <span>Archived Requests ({archivedReqs.length})</span>
+                <span>📁 Archived ({archivedReqs.length})</span>
                 <span style={{ transform: archiveOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', fontSize: '1.2rem' }}>▼</span>
               </button>
 
               {archiveOpen && (
                 <div style={{ marginTop: '1rem' }}>
-                  {/* Search + Group toggle row */}
+                  {/* Search + Group toggle */}
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '180px', position: 'relative' }}>
                       <input
@@ -370,14 +408,12 @@ export default function AdminRentRequestsPage() {
                     </button>
                   </div>
 
-                  {/* Filter tabs */}
+                  {/* Filter tabs — only Returned + Rejected */}
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem', flexWrap: 'wrap' }}>
                     {[
-                      { key: 'all',       label: 'All',       count: archivedReqs.length,  color: 'var(--text-muted)' },
-                      { key: 'approved',  label: 'Active',    count: approvedReqs.length,  color: 'var(--green)' },
-                      { key: 'delivered', label: 'Delivered', count: deliveredReqs.length, color: '#63b3ed' },
-                      { key: 'returned',  label: 'Returned',  count: returnedReqs.length,  color: 'var(--rose-gold)' },
-                      { key: 'rejected',  label: 'Rejected',  count: rejectedReqs.length,  color: 'var(--red)' },
+                      { key: 'all',      label: 'All',      count: archivedReqs.length,  color: 'var(--text-muted)' },
+                      { key: 'returned', label: 'Returned', count: returnedReqs.length,  color: 'var(--rose-gold)' },
+                      { key: 'rejected', label: 'Rejected', count: rejectedReqs.length,  color: 'var(--red)' },
                     ].map(tab => (
                       <button
                         key={tab.key}
@@ -406,7 +442,6 @@ export default function AdminRentRequestsPage() {
                       {archiveSearch ? `No results for "${archiveSearch}"` : `No ${archiveFilter} requests.`}
                     </p>
                   ) : groupByPerson ? (
-                    /* Grouped by person view */
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                       {groupedByPerson.map(([personName, personReqs]) => (
                         <div key={personName} style={{
@@ -414,7 +449,6 @@ export default function AdminRentRequestsPage() {
                           borderRadius: 'var(--radius-lg)',
                           overflow: 'hidden',
                         }}>
-                          {/* Person header */}
                           <div style={{
                             padding: '14px 18px',
                             background: 'rgba(201, 149, 108, 0.06)',
@@ -437,13 +471,12 @@ export default function AdminRentRequestsPage() {
                                 <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
                                   {personReqs.length} request{personReqs.length !== 1 ? 's' : ''}
                                   {personReqs[0]?.phone && (
-                                    <> · <a href={`tel:${personReqs[0].phone}`} style={{ color: 'var(--rose-gold)', textDecoration: 'none' }}>{personReqs[0].phone}</a></>  
+                                    <> · <a href={`tel:${personReqs[0].phone}`} style={{ color: 'var(--rose-gold)', textDecoration: 'none' }}>{personReqs[0].phone}</a></>
                                   )}
                                 </div>
                               </div>
                             </div>
                           </div>
-                          {/* Person's requests */}
                           <div style={{ padding: '8px' }}>
                             {personReqs.map(req => (
                               <div key={req.id} style={{
@@ -478,7 +511,6 @@ export default function AdminRentRequestsPage() {
                       ))}
                     </div>
                   ) : (
-                    /* Normal grid view */
                     <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
                       {filteredArchived.map(renderCard)}
                     </div>
@@ -493,39 +525,39 @@ export default function AdminRentRequestsPage() {
       {/* Mark Delivered — set due date modal */}
       {deliverModal && (
         <Portal>
-        <div className="crop-modal" onClick={() => setDeliverModal(null)}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background: 'var(--brown-800)',
-            border: '1px solid rgba(201, 149, 108, 0.15)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '24px',
-            width: 'calc(100vw - 32px)',
-            maxWidth: '380px',
-            boxShadow: 'var(--shadow-lg)',
-          }}>
-            <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Mark as Delivered</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-              Set the return date for this rental.
-            </p>
-            <div className="form-group" style={{ margin: '0 0 16px 0' }}>
-              <label className="form-label" htmlFor="due-date">Return By *</label>
-              <input id="due-date" className="form-input" type="date"
-                value={dueDate} onChange={e => setDueDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                required />
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
-                onClick={() => setDeliverModal(null)}>Cancel</button>
-              <button type="button" className="btn btn-sm" style={{
-                flex: 1, backgroundColor: 'rgba(99, 179, 237, 0.15)', color: '#63b3ed',
-                border: '1px solid rgba(99, 179, 237, 0.3)', minHeight: '40px', fontSize: '0.95rem'
-              }} onClick={confirmDeliver}>
-                Confirm Delivered
-              </button>
+          <div className="crop-modal" onClick={() => setDeliverModal(null)}>
+            <div onClick={e => e.stopPropagation()} style={{
+              background: 'var(--brown-800)',
+              border: '1px solid rgba(201, 149, 108, 0.15)',
+              borderRadius: 'var(--radius-lg)',
+              padding: '24px',
+              width: 'calc(100vw - 32px)',
+              maxWidth: '380px',
+              boxShadow: 'var(--shadow-lg)',
+            }}>
+              <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Mark as Delivered</h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+                Set the return date for this rental.
+              </p>
+              <div className="form-group" style={{ margin: '0 0 16px 0' }}>
+                <label className="form-label" htmlFor="due-date">Return By *</label>
+                <input id="due-date" className="form-input" type="date"
+                  value={dueDate} onChange={e => setDueDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  required />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
+                  onClick={() => setDeliverModal(null)}>Cancel</button>
+                <button type="button" className="btn btn-sm" style={{
+                  flex: 1, backgroundColor: 'rgba(99, 179, 237, 0.15)', color: '#63b3ed',
+                  border: '1px solid rgba(99, 179, 237, 0.3)', minHeight: '40px', fontSize: '0.95rem'
+                }} onClick={confirmDeliver}>
+                  Confirm Delivered
+                </button>
+              </div>
             </div>
           </div>
-        </div>
         </Portal>
       )}
     </div>
