@@ -98,23 +98,23 @@ export default function AdminRentRequestsPage() {
 
   const getStatusBadge = (status) => {
     const styles = {
-      pending:   { bg: 'rgba(251, 191, 36, 0.12)',  color: 'var(--yellow)',    border: 'rgba(251, 191, 36, 0.25)' },
-      approved:  { bg: 'var(--green-bg)',            color: 'var(--green)',     border: 'rgba(74, 222, 128, 0.25)' },
-      delivered: { bg: 'rgba(99, 179, 237, 0.12)',   color: '#63b3ed',          border: 'rgba(99, 179, 237, 0.25)' },
-      rejected:  { bg: 'var(--red-bg)',              color: 'var(--red)',       border: 'rgba(248, 113, 113, 0.25)' },
-      returned:  { bg: 'rgba(201, 149, 108, 0.12)', color: 'var(--rose-gold)', border: 'rgba(201, 149, 108, 0.25)' },
+      pending: { bg: 'rgba(251, 191, 36, 0.12)', color: 'var(--yellow)', border: 'rgba(251, 191, 36, 0.25)' },
+      approved: { bg: 'var(--green-bg)', color: 'var(--green)', border: 'rgba(74, 222, 128, 0.25)' },
+      delivered: { bg: 'rgba(99, 179, 237, 0.12)', color: '#63b3ed', border: 'rgba(99, 179, 237, 0.25)' },
+      rejected: { bg: 'var(--red-bg)', color: 'var(--red)', border: 'rgba(248, 113, 113, 0.25)' },
+      returned: { bg: 'rgba(201, 149, 108, 0.12)', color: 'var(--rose-gold)', border: 'rgba(201, 149, 108, 0.25)' },
     }
     const s = styles[status] || styles.pending
     return <span className="badge" style={{ backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
   }
 
   // Categorise requests into the four sections
-  const pendingReqs   = requests.filter(r => r.status === 'pending')
-  const approvedReqs  = requests.filter(r => r.status === 'approved')
+  const pendingReqs = requests.filter(r => r.status === 'pending')
+  const approvedReqs = requests.filter(r => r.status === 'approved')
   const deliveredReqs = requests.filter(r => r.status === 'delivered')
-  const returnedReqs  = requests.filter(r => r.status === 'returned')
-  const rejectedReqs  = requests.filter(r => r.status === 'rejected')
-  const archivedReqs  = requests.filter(r => r.status === 'returned' || r.status === 'rejected')
+  const returnedReqs = requests.filter(r => r.status === 'returned')
+  const rejectedReqs = requests.filter(r => r.status === 'rejected')
+  const archivedReqs = requests.filter(r => r.status === 'returned' || r.status === 'rejected')
 
   // Archive filter + search (rejected only shown when searching or grouping by person)
   const showRejected = archiveSearch.trim() !== '' || groupByPerson
@@ -123,7 +123,7 @@ export default function AdminRentRequestsPage() {
     let base = archiveFilter === 'all'
       ? (showRejected ? archivedReqs : returnedReqs)
       : archiveFilter === 'returned' ? returnedReqs
-      : rejectedReqs
+        : rejectedReqs
 
     if (archiveSearch.trim()) {
       const q = archiveSearch.toLowerCase()
@@ -411,9 +411,9 @@ export default function AdminRentRequestsPage() {
                   {/* Filter tabs — only Returned + Rejected */}
                   <div style={{ display: 'flex', gap: '6px', marginBottom: '1rem', flexWrap: 'wrap' }}>
                     {[
-                      { key: 'all',      label: 'All',      count: archivedReqs.length,  color: 'var(--text-muted)' },
-                      { key: 'returned', label: 'Returned', count: returnedReqs.length,  color: 'var(--rose-gold)' },
-                      { key: 'rejected', label: 'Rejected', count: rejectedReqs.length,  color: 'var(--red)' },
+                      { key: 'all', label: 'All', count: archivedReqs.length, color: 'var(--text-muted)' },
+                      { key: 'returned', label: 'Returned', count: returnedReqs.length, color: 'var(--rose-gold)' },
+                      { key: 'rejected', label: 'Rejected', count: rejectedReqs.length, color: 'var(--red)' },
                     ].map(tab => (
                       <button
                         key={tab.key}
