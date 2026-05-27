@@ -93,6 +93,24 @@ export const viewport = {
   themeColor: '#1a0a0a',
 }
 
+// Organization schema — placed in root layout so Google sees it on every page
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'BookFlix',
+  url: 'https://bookflix.in',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://bookflix.in/logo.png',
+    width: 1076,
+    height: 1076,
+  },
+  description: "Kerala's curated online book rental platform. Rent Malayalam and English books delivered to your door.",
+  sameAs: [
+    'https://bookflix.in',
+  ],
+}
+
 export default function RootLayout({ children }) {
   return (
     <html lang="en-IN" className={`${outfit.variable} ${inter.variable}`}>
@@ -102,6 +120,11 @@ export default function RootLayout({ children }) {
         <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
         <link rel="dns-prefetch" href="https://wlwyvbrpatzecobyppgn.supabase.co" />
         <link rel="preconnect" href="https://wlwyvbrpatzecobyppgn.supabase.co" crossOrigin="anonymous" />
+        {/* Organization schema — tells Google our logo for Knowledge Panel */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
       </head>
       <body>
         <ToastProvider>
