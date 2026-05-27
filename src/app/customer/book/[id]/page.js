@@ -21,6 +21,7 @@ export async function generateMetadata({ params }) {
   return {
     title: `${book.title} by ${book.author} | Rent on BookFlix`,
     description: book.description || `Rent ${book.title} by ${book.author} on BookFlix. Malayalam and English books available.`,
+    robots: { index: true, follow: true },
     openGraph: {
       title: `${book.title} by ${book.author}`,
       description: book.description,

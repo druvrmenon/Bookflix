@@ -22,11 +22,9 @@ export default async function sitemap() {
     priority: 0.7,
   }))
 
-  // Only public, indexable routes — NO /customer, /admin, /reset-password
+  // Only public, indexable routes — NO /login, /signup (noindex), /customer, /admin
   const staticRoutes = [
     { route: '', priority: 1.0, freq: 'daily' },
-    { route: '/login', priority: 0.5, freq: 'monthly' },
-    { route: '/signup', priority: 0.6, freq: 'monthly' },
     { route: '/terms', priority: 0.3, freq: 'yearly' },
   ].map(({ route, priority, freq }) => ({
     url: `${baseUrl}${route}`,
