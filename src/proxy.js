@@ -7,8 +7,8 @@ import { NextResponse } from 'next/server' // Next.js response helper
 
 // Proxy function — runs on every matched request
 export async function proxy(request) {
-  // 1. IP Ban Check Setup
-  const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+  // Use request.ip (set by Vercel) or x-real-ip (also Vercel-set) — NOT x-forwarded-for which clients can spoof
+  const ip = request.ip || request.headers.get('x-real-ip') || null
   const isBannedPath = request.nextUrl.pathname.startsWith('/banned')
 
   // Read Supabase credentials
@@ -54,15 +54,10 @@ export async function proxy(request) {
   // 2. Perform DB checks (IP Ban + User Ban)
   let userIsBanned = false
 
-  // Check IP
-  if (ip !== 'unknown') {
-    const { data: bannedIp } = await supabase
-      .from('banned_ips')
-      .select('ip')
-      .eq('ip', ip)
-      .single()
-
-    if (bannedIp) userIsBanned = true
+  // Check IP using a SECURITY DEFINER function — avoids needing SELECT on banned_ips with the anon key
+  if (ip) {
+    const { data: ipBanned } = await supabase.rpc('is_ip_banned', { check_ip: ip })
+    if (ipBanned) userIsBanned = true
   }
 
   // Check User Account Ban

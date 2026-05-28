@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS public.rent_requests (
   latitude FLOAT8,
   longitude FLOAT8,
   message TEXT,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned')),
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'returned', 'delivered')),
   payment_method TEXT DEFAULT 'cash' CHECK (payment_method IN ('cash', 'upi')),
   payment_status TEXT DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'submitted', 'verified')),
   payment_screenshot_url TEXT,
@@ -256,9 +256,17 @@ DROP POLICY IF EXISTS "Admins can manage banned IPs" ON public.banned_ips;
 CREATE POLICY "Admins can manage banned IPs" ON public.banned_ips
   FOR ALL USING (public.is_admin());
 
-DROP POLICY IF EXISTS "Anyone can read banned IPs" ON public.banned_ips;
-CREATE POLICY "Anyone can read banned IPs" ON public.banned_ips
-  FOR SELECT USING (true);
+-- Security fix: removed open SELECT policy on banned_ips.
+-- Proxy checks IPs via the is_ip_banned() function below (SECURITY DEFINER bypasses RLS).
+-- This way the full list of banned IPs is never exposed to anonymous users.
+CREATE OR REPLACE FUNCTION public.is_ip_banned(check_ip TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.banned_ips WHERE ip = check_ip
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ============================================
 -- Dynamic Genres

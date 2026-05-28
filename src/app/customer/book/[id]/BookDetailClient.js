@@ -156,25 +156,11 @@ export default function BookDetailClient({ initialBook, id }) {
     setRenting(true)
     setMessage('')
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not logged in')
-
-      const { error: existCheck } = await supabase
-        .from('rent_requests')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('book_id', id)
-        .eq('status', 'pending')
-        .single()
-
-      if (!existCheck) {
-        setMessage('You already have a pending request for this book.')
-        setRentModal(false)
-        return
-      }
-
       let screenshotUrl = null
       if (paymentMethod === 'upi' && screenshotFile) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not logged in')
+
         const fileExt = screenshotFile.name.split('.').pop()
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
         const filePath = `payments/${fileName}`
@@ -192,10 +178,11 @@ export default function BookDetailClient({ initialBook, id }) {
         screenshotUrl = publicUrl
       }
 
-      const { error: insertErr } = await supabase
-        .from('rent_requests')
-        .insert({
-          user_id: user.id,
+      // Submit via server-side API route (enforces rate limiting + auth server-side)
+      const res = await fetch('/api/rent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           book_id: id,
           contact_name: contactName.trim(),
           phone: phone.trim(),
@@ -204,10 +191,13 @@ export default function BookDetailClient({ initialBook, id }) {
           longitude: lng,
           payment_method: paymentMethod,
           payment_status: paymentMethod === 'upi' ? 'submitted' : 'unpaid',
-          payment_screenshot_url: screenshotUrl
-        })
+          payment_screenshot_url: screenshotUrl,
+        }),
+      })
 
-      if (insertErr) throw insertErr
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || 'Failed to send request')
+
       setRentModal(false)
       if (!book.available) {
         setAlreadyInQueue(true)
@@ -222,6 +212,7 @@ export default function BookDetailClient({ initialBook, id }) {
       setRenting(false)
     }
   }
+
 
   const handleSubmitReview = async (e) => {
     e.preventDefault()
