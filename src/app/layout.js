@@ -118,9 +118,8 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
-        <link rel="dns-prefetch" href="https://wlwyvbrpatzecobyppgn.supabase.co" />
-        <link rel="preconnect" href="https://wlwyvbrpatzecobyppgn.supabase.co" crossOrigin="anonymous" />
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
         {/* Organization schema — tells Google our logo for Knowledge Panel */}
         <script
           type="application/ld+json"
