@@ -1,7 +1,6 @@
 // Root layout — wraps entire app
 // Sets up fonts, metadata, and optional analytics
 import { Outfit, Inter } from 'next/font/google'
-import Script from 'next/script'
 import './globals.css'
 import PWARegistration from '@/components/PWARegistration'
 import CookieConsent from '@/components/CookieConsent'
@@ -133,14 +132,7 @@ export default function RootLayout({ children }) {
           <PresenceTracker />
           {children}
           <ClientAnalytics />
-          {/* Chatbase chatbot embed */}
-          <Script
-            id="chatbase-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="iiCi_AFzfRS2LapnRuaSw";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();`
-            }}
-          />
+
         </ToastProvider>
       </body>
     </html>
