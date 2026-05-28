@@ -7,7 +7,6 @@ import PWARegistration from '@/components/PWARegistration'
 import CookieConsent from '@/components/CookieConsent'
 import ClientAnalytics from '@/components/ClientAnalytics'
 import PresenceTracker from '@/components/PresenceTracker'
-import ChatbaseIdentity from '@/components/ChatbaseIdentity'
 import { ToastProvider } from '@/components/Toast'
 
 const outfit = Outfit({
@@ -143,8 +142,6 @@ export default function RootLayout({ children }) {
               __html: `(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="iiCi_AFzfRS2LapnRuaSw";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();`
             }}
           />
-          {/* Identifies logged-in user with Chatbase */}
-          <ChatbaseIdentity />
         </ToastProvider>
       </body>
     </html>
