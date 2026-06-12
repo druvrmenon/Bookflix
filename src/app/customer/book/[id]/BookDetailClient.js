@@ -35,6 +35,7 @@ export default function BookDetailClient({ initialBook, id }) {
   const [showMap, setShowMap] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cash')
   const [screenshotFile, setScreenshotFile] = useState(null)
+  const [rentWeeks, setRentWeeks] = useState(2)
 
   // Queue state for out-of-stock books
   const [queueCount, setQueueCount] = useState(0)
@@ -125,6 +126,7 @@ export default function BookDetailClient({ initialBook, id }) {
     setShowMap(false)
     setPaymentMethod('cash')
     setScreenshotFile(null)
+    setRentWeeks(2)
     setRentModal(true)
   }
 
@@ -192,6 +194,8 @@ export default function BookDetailClient({ initialBook, id }) {
           payment_method: paymentMethod,
           payment_status: paymentMethod === 'upi' ? 'submitted' : 'unpaid',
           payment_screenshot_url: screenshotUrl,
+          duration_weeks: rentWeeks,
+          price: rentWeeks * 35,
         }),
       })
 
@@ -662,39 +666,71 @@ export default function BookDetailClient({ initialBook, id }) {
                   )}
                 </div>
 
-                <div className="form-group" style={{ margin: '4px 0' }}>
-                  <label className="form-label">Payment Method *</label>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button type="button" className={`btn btn-sm ${paymentMethod === 'cash' ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1 }} onClick={() => setPaymentMethod('cash')}>Cash on Delivery</button>
-                    <button type="button" className={`btn btn-sm ${paymentMethod === 'upi' ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1 }} onClick={() => setPaymentMethod('upi')}>UPI (₹70)</button>
-                  </div>
-                </div>
+                 <div className="form-group" style={{ margin: '0 0 14px 0' }}>
+                   <label className="form-label">Rental Duration *</label>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                     <button
+                       type="button"
+                       className="btn btn-secondary"
+                       style={{ padding: '8px 16px', minWidth: '40px', fontWeight: 'bold' }}
+                       onClick={() => setRentWeeks(w => Math.max(2, w - 1))}
+                       disabled={rentWeeks <= 2}
+                     >
+                       -
+                     </button>
+                     <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--gray-50)', minWidth: '80px', textAlign: 'center' }}>
+                       {rentWeeks} Weeks
+                     </span>
+                     <button
+                       type="button"
+                       className="btn btn-secondary"
+                       style={{ padding: '8px 16px', minWidth: '40px', fontWeight: 'bold' }}
+                       onClick={() => setRentWeeks(w => w + 1)}
+                     >
+                       +
+                     </button>
+                     <span style={{ marginLeft: 'auto', fontSize: '0.9rem', color: 'var(--rose-gold)', fontWeight: 'bold' }}>
+                       ₹{rentWeeks * 35}
+                     </span>
+                   </div>
+                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
+                     Rate: ₹35 per week. Minimum duration is 2 weeks.
+                   </span>
+                 </div>
 
-                {paymentMethod === 'upi' && (
-                  <div style={{ padding: '16px', background: 'rgba(201, 149, 108, 0.05)', borderRadius: 'var(--radius)', border: '1px solid rgba(201, 149, 108, 0.2)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ fontSize: '0.9rem', color: 'var(--gray-50)', textAlign: 'center' }}>
-                      Pay <strong>₹70</strong> (2 weeks advance) to:
-                    </div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--rose-gold)', textAlign: 'center', letterSpacing: '1px' }}>
-                      {process.env.NEXT_PUBLIC_UPI_ID || 'admin@upi'}
-                    </div>
-                    <a href={`upi://pay?pa=${process.env.NEXT_PUBLIC_UPI_ID || 'admin@upi'}&am=70&tn=BookFlix_Rental`} className="btn btn-sm btn-primary" style={{ display: 'flex', justifyContent: 'center' }}>
-                      Pay via UPI App
-                    </a>
-                    
-                    <div style={{ marginTop: '8px' }}>
-                      <label className="form-label" style={{ fontSize: '0.85rem' }}>Upload Screenshot *</label>
-                      <input type="file" accept="image/*" onChange={e => setScreenshotFile(e.target.files[0])} className="form-input" style={{ padding: '8px', fontSize: '0.85rem' }} required={paymentMethod === 'upi'} />
-                      {screenshotFile && <div style={{ fontSize: '0.8rem', color: 'var(--green)', marginTop: '4px' }}>Screenshot attached ✓</div>}
-                    </div>
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
-                  <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={agreeFees} onChange={e => setAgreeFees(e.target.checked)} required />
-                    <span>I agree to pay for 2 weeks in advance (70 rupees).</span>
-                  </label>
+                 <div className="form-group" style={{ margin: '4px 0' }}>
+                   <label className="form-label">Payment Method *</label>
+                   <div style={{ display: 'flex', gap: '10px' }}>
+                     <button type="button" className={`btn btn-sm ${paymentMethod === 'cash' ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1 }} onClick={() => setPaymentMethod('cash')}>Cash on Delivery</button>
+                     <button type="button" className={`btn btn-sm ${paymentMethod === 'upi' ? 'btn-primary' : 'btn-secondary'}`} style={{ flex: 1 }} onClick={() => setPaymentMethod('upi')}>UPI (₹{rentWeeks * 35})</button>
+                   </div>
+                 </div>
+ 
+                 {paymentMethod === 'upi' && (
+                   <div style={{ padding: '16px', background: 'rgba(201, 149, 108, 0.05)', borderRadius: 'var(--radius)', border: '1px solid rgba(201, 149, 108, 0.2)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                     <div style={{ fontSize: '0.9rem', color: 'var(--gray-50)', textAlign: 'center' }}>
+                       Pay <strong>₹{rentWeeks * 35}</strong> ({rentWeeks} weeks advance) to:
+                     </div>
+                     <div style={{ fontSize: '1.2rem', fontWeight: 600, color: 'var(--rose-gold)', textAlign: 'center', letterSpacing: '1px' }}>
+                       {process.env.NEXT_PUBLIC_UPI_ID || 'admin@upi'}
+                     </div>
+                     <a href={`upi://pay?pa=${process.env.NEXT_PUBLIC_UPI_ID || 'admin@upi'}&am=${rentWeeks * 35}&tn=BookFlix_Rental`} className="btn btn-sm btn-primary" style={{ display: 'flex', justifyContent: 'center' }}>
+                       Pay via UPI App
+                     </a>
+                     
+                     <div style={{ marginTop: '8px' }}>
+                       <label className="form-label" style={{ fontSize: '0.85rem' }}>Upload Screenshot *</label>
+                       <input type="file" accept="image/*" onChange={e => setScreenshotFile(e.target.files[0])} className="form-input" style={{ padding: '8px', fontSize: '0.85rem' }} required={paymentMethod === 'upi'} />
+                       {screenshotFile && <div style={{ fontSize: '0.8rem', color: 'var(--green)', marginTop: '4px' }}>Screenshot attached ✓</div>}
+                     </div>
+                   </div>
+                 )}
+ 
+                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
+                   <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                     <input type="checkbox" checked={agreeFees} onChange={e => setAgreeFees(e.target.checked)} required />
+                     <span>I agree to pay for {rentWeeks} weeks in advance ({rentWeeks * 35} rupees).</span>
+                   </label>
                   <label style={{ display: 'flex', gap: '10px', fontSize: '0.85rem', color: 'var(--text-muted)', cursor: 'pointer' }}>
                     <input type="checkbox" checked={agreeDamage} onChange={e => setAgreeDamage(e.target.checked)} required />
                     <span>I agree to pay ₹600 if the book is damaged or lost.</span>

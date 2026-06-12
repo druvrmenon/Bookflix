@@ -124,8 +124,11 @@ export default function CustomerRentalsPage() {
                       {req.books?.title || 'Unknown'}
                     </h3>
                   </Link>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0 0 8px 0' }}>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0' }}>
                     by {req.books?.author || '?'}
+                  </p>
+                  <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', margin: '4px 0 8px 0' }}>
+                    Rental: {req.duration_weeks || 2} weeks (₹{req.price || 70})
                   </p>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '6px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -158,7 +161,7 @@ export default function CustomerRentalsPage() {
                   </div>
                   {req.status === 'delivered' && req.due_date && (
                     <div style={{ marginTop: '6px', fontSize: '0.78rem', color: new Date(req.due_date) < new Date() ? 'var(--red)' : 'var(--text-muted)' }}>
-                      📅 Return by: <strong>{new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
+                      🏃 Running till: <strong>{new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong> (₹{req.price || 70})
                       {new Date(req.due_date) < new Date() && ' ⚠️ Overdue!'}
                     </div>
                   )}

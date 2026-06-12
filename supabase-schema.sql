@@ -168,8 +168,14 @@ CREATE TABLE IF NOT EXISTS public.rent_requests (
   payment_status TEXT DEFAULT 'unpaid' CHECK (payment_status IN ('unpaid', 'submitted', 'verified')),
   payment_screenshot_url TEXT,
   due_date DATE,
+  duration_weeks INTEGER DEFAULT 2 CHECK (duration_weeks >= 2),
+  price INTEGER DEFAULT 70,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+-- Ensure columns exist for existing tables
+ALTER TABLE public.rent_requests ADD COLUMN IF NOT EXISTS duration_weeks INTEGER DEFAULT 2 CHECK (duration_weeks >= 2);
+ALTER TABLE public.rent_requests ADD COLUMN IF NOT EXISTS price INTEGER DEFAULT 70;
+
 -- IMPORTANT: Enable Realtime for this table in Supabase Dashboard
 -- ALTER PUBLICATION supabase_realtime ADD TABLE rent_requests;
 ALTER TABLE public.rent_requests ENABLE ROW LEVEL SECURITY;

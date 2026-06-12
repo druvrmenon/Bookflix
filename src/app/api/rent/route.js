@@ -23,6 +23,8 @@ export async function POST(request) {
 
     const body = await request.json()
     const { book_id, contact_name, phone, address, latitude, longitude, payment_method, payment_status, payment_screenshot_url } = body
+    const duration_weeks = parseInt(body.duration_weeks) || 2
+    const price = parseInt(body.price) || (duration_weeks * 35)
 
     // Basic validation
     if (!book_id || !contact_name?.trim() || !phone?.trim()) {
@@ -35,6 +37,14 @@ export async function POST(request) {
 
     if (!latitude || !longitude) {
       return NextResponse.json({ error: 'Location is required' }, { status: 400 })
+    }
+
+    if (duration_weeks < 2) {
+      return NextResponse.json({ error: 'Minimum rental duration is 2 weeks.' }, { status: 400 })
+    }
+
+    if (price !== duration_weeks * 35) {
+      return NextResponse.json({ error: 'Invalid price for selected duration.' }, { status: 400 })
     }
 
     // Rate limit: count how many requests this user made in the last 24 hours
@@ -79,6 +89,8 @@ export async function POST(request) {
         payment_method: payment_method || 'cash',
         payment_status: payment_status || 'unpaid',
         payment_screenshot_url: payment_screenshot_url || null,
+        duration_weeks,
+        price,
       })
 
     if (insertError) throw insertError

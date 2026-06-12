@@ -83,8 +83,10 @@ export default function AdminRentRequestsPage() {
   }
 
   const handleDeliver = (reqId) => {
+    const req = requests.find(r => r.id === reqId)
+    const weeks = req?.duration_weeks || 2
     const defaultDate = new Date()
-    defaultDate.setDate(defaultDate.getDate() + 14)
+    defaultDate.setDate(defaultDate.getDate() + (weeks * 7))
     setDueDate(defaultDate.toISOString().split('T')[0])
     setDeliverModal(reqId)
   }
@@ -175,8 +177,11 @@ export default function AdminRentRequestsPage() {
           <h3 style={{ fontSize: '1rem', margin: '0 0 2px 0', color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {req.books?.title || 'Unknown Book'}
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0 0 8px 0' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: '0' }}>
             by {req.books?.author || '?'}
+          </p>
+          <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', margin: '4px 0 8px 0' }}>
+            Rental: {req.duration_weeks || 2} weeks (₹{req.price || 70})
           </p>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
             <p style={{ margin: '0 0 2px 0' }}>From: <strong style={{ color: 'var(--text)' }}>{req.contact_name || req.profiles?.full_name || 'Unknown'}</strong></p>
@@ -238,9 +243,9 @@ export default function AdminRentRequestsPage() {
 
       {req.status === 'delivered' && req.due_date && (
         <div style={{ padding: '8px 16px', fontSize: '0.8rem', color: 'var(--text-muted)', borderTop: '1px solid rgba(201, 149, 108, 0.1)' }}>
-          📅 Return by: <strong style={{ color: new Date(req.due_date) < new Date() ? 'var(--red)' : 'var(--text)' }}>
+          🏃 Running till: <strong style={{ color: new Date(req.due_date) < new Date() ? 'var(--red)' : 'var(--text)' }}>
             {new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </strong>
+          </strong> (₹{req.price || 70})
           {new Date(req.due_date) < new Date() && <span style={{ color: 'var(--red)', marginLeft: '6px' }}>⚠️ OVERDUE</span>}
         </div>
       )}
@@ -498,7 +503,7 @@ export default function AdminRentRequestsPage() {
                                     {new Date(req.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                                     {req.status === 'delivered' && req.due_date && (
                                       <span style={{ color: new Date(req.due_date) < new Date() ? 'var(--red)' : 'var(--text-muted)' }}>
-                                        {' '}· Due {new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                                        {' '}· Running till {new Date(req.due_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })} (₹{req.price || 70})
                                       </span>
                                     )}
                                   </div>
@@ -523,43 +528,68 @@ export default function AdminRentRequestsPage() {
       )}
 
       {/* Mark Delivered — set due date modal */}
-      {deliverModal && (
-        <Portal>
-          <div className="crop-modal" onClick={() => setDeliverModal(null)}>
-            <div onClick={e => e.stopPropagation()} style={{
-              background: 'var(--brown-800)',
-              border: '1px solid rgba(201, 149, 108, 0.15)',
-              borderRadius: 'var(--radius-lg)',
-              padding: '24px',
-              width: 'calc(100vw - 32px)',
-              maxWidth: '380px',
-              boxShadow: 'var(--shadow-lg)',
-            }}>
-              <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Mark as Delivered</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
-                Set the return date for this rental.
-              </p>
-              <div className="form-group" style={{ margin: '0 0 16px 0' }}>
-                <label className="form-label" htmlFor="due-date">Return By *</label>
-                <input id="due-date" className="form-input" type="date"
-                  value={dueDate} onChange={e => setDueDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  required />
-              </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
-                  onClick={() => setDeliverModal(null)}>Cancel</button>
-                <button type="button" className="btn btn-sm" style={{
-                  flex: 1, backgroundColor: 'rgba(99, 179, 237, 0.15)', color: '#63b3ed',
-                  border: '1px solid rgba(99, 179, 237, 0.3)', minHeight: '40px', fontSize: '0.95rem'
-                }} onClick={confirmDeliver}>
-                  Confirm Delivered
-                </button>
+      {deliverModal && (() => {
+        const activeReq = requests.find(r => r.id === deliverModal)
+        const formattedDueDate = dueDate ? new Date(dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '...'
+        return (
+          <Portal>
+            <div className="crop-modal" onClick={() => setDeliverModal(null)}>
+              <div onClick={e => e.stopPropagation()} style={{
+                background: 'var(--brown-800)',
+                border: '1px solid rgba(201, 149, 108, 0.15)',
+                borderRadius: 'var(--radius-lg)',
+                padding: '24px',
+                width: 'calc(100vw - 32px)',
+                maxWidth: '380px',
+                boxShadow: 'var(--shadow-lg)',
+              }}>
+                <h3 style={{ color: 'var(--gray-50)', marginBottom: '4px', fontSize: '1.1rem' }}>Mark as Delivered</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '20px' }}>
+                  Set the return date for this rental.
+                </p>
+
+                {activeReq && (
+                  <div style={{
+                    padding: '12px',
+                    borderRadius: 'var(--radius)',
+                    background: 'rgba(201, 149, 108, 0.08)',
+                    border: '1px solid rgba(201, 149, 108, 0.2)',
+                    marginBottom: '16px',
+                    fontSize: '0.85rem',
+                    lineHeight: 1.4,
+                  }}>
+                    <p style={{ margin: '0 0 4px 0', color: 'var(--rose-gold)', fontWeight: 600 }}>Rental Details:</p>
+                    <p style={{ margin: '0 0 2px 0', color: 'var(--text)' }}>
+                      🏃 Running till: <strong style={{ color: 'var(--gray-50)' }}>{formattedDueDate}</strong>
+                    </p>
+                    <p style={{ margin: 0, color: activeReq.payment_method === 'upi' ? 'var(--green)' : 'var(--yellow)' }}>
+                      💰 {activeReq.payment_method === 'upi' ? `Paid ₹${activeReq.price || 70} via UPI` : `Collect ₹${activeReq.price || 70} in Cash`}
+                    </p>
+                  </div>
+                )}
+
+                <div className="form-group" style={{ margin: '0 0 16px 0' }}>
+                  <label className="form-label" htmlFor="due-date">Return By *</label>
+                  <input id="due-date" className="form-input" type="date"
+                    value={dueDate} onChange={e => setDueDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    required />
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button type="button" className="btn btn-secondary" style={{ flex: 1 }}
+                    onClick={() => setDeliverModal(null)}>Cancel</button>
+                  <button type="button" className="btn btn-sm" style={{
+                    flex: 1, backgroundColor: 'rgba(99, 179, 237, 0.15)', color: '#63b3ed',
+                    border: '1px solid rgba(99, 179, 237, 0.3)', minHeight: '40px', fontSize: '0.95rem'
+                  }} onClick={confirmDeliver}>
+                    Confirm Delivered
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </Portal>
-      )}
+          </Portal>
+        )
+      })()}
     </div>
   )
 }
